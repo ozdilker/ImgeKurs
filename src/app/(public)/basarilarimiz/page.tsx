@@ -96,9 +96,11 @@ export default async function SuccessPage() {
                 </div>
                 <div className="p-6">
                   <h3 className="text-lg font-bold text-primary">{story.name}</h3>
-                  <p className="mb-2 text-sm font-semibold text-gold">
-                    {story.rank}
-                  </p>
+                  {story.rank && (
+                    <p className="mb-2 text-sm font-semibold text-gold">
+                      {story.rank}
+                    </p>
+                  )}
                   <p className="mb-4 flex items-center gap-1 text-sm text-slate-text">
                     <Building2 className="h-4 w-4" />
                     {story.university}

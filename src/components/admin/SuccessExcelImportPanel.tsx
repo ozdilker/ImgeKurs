@@ -113,7 +113,7 @@ export function SuccessExcelImportPanel({
       <div className="mt-4 rounded-lg bg-surface-gray p-4 text-xs text-slate-text">
         <p className="font-semibold text-primary">Beklenen sütunlar</p>
         <p className="mt-1">
-          Ad Soyad, Derece, Üniversite (zorunlu) · Bölüm, Foto URL, Alıntı (opsiyonel)
+          Ad Soyad, Üniversite (zorunlu) · Derece, Bölüm, Foto URL, Alıntı (opsiyonel)
         </p>
       </div>
     </div>

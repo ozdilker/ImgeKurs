@@ -98,7 +98,6 @@ export function parseSuccessStoryExcel(buffer: ArrayBuffer): SuccessExcelImportR
   const errors: string[] = [];
 
   if (mapping.name === undefined) errors.push("Zorunlu sütun bulunamadı: Ad Soyad");
-  if (mapping.rank === undefined) errors.push("Zorunlu sütun bulunamadı: Derece");
   if (mapping.university === undefined) errors.push("Zorunlu sütun bulunamadı: Üniversite");
 
   if (errors.length > 0) {
@@ -115,14 +114,14 @@ export function parseSuccessStoryExcel(buffer: ArrayBuffer): SuccessExcelImportR
 
     if (!name && !rank && !university) return;
 
-    if (!name || !rank || !university) {
-      errors.push(`Satır ${index + 2}: Ad Soyad, Derece ve Üniversite zorunludur.`);
+    if (!name || !university) {
+      errors.push(`Satır ${index + 2}: Ad Soyad ve Üniversite zorunludur.`);
       return;
     }
 
     rows.push({
       name,
-      rank,
+      rank: rank || "",
       university,
       department: cellValue(cells, mapping.department) || undefined,
       imageUrl: cellValue(cells, mapping.imageUrl) || undefined,

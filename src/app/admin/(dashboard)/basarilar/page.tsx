@@ -160,10 +160,9 @@ export default function SuccessAdminPage() {
               className="rounded-lg border px-4 py-2"
             />
             <input
-              placeholder="Derece *"
+              placeholder="Derece"
               value={form.rank}
               onChange={(e) => setForm({ ...form, rank: e.target.value })}
-              required
               className="rounded-lg border px-4 py-2"
             />
             <input
@@ -240,7 +239,9 @@ export default function SuccessAdminPage() {
               </div>
               <div className="p-5">
                 <p className="font-semibold text-primary">{story.name}</p>
-                <p className="text-sm font-medium text-gold">{story.rank}</p>
+                {story.rank && (
+                  <p className="text-sm font-medium text-gold">{story.rank}</p>
+                )}
                 <p className="mt-1 text-sm text-slate-text">
                   {story.university}
                   {story.department ? ` · ${story.department}` : ""}
