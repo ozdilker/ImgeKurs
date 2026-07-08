@@ -17,6 +17,8 @@
 
   --shadow-card: 0 4px 20px rgba(0, 39, 68, 0.05);
   --shadow-card-hover: 0 8px 30px rgba(0, 39, 68, 0.1);
+  --shadow-slider: 0 24px 48px -12px rgba(0, 39, 68, 0.22),
+    0 12px 24px -8px rgba(0, 39, 68, 0.12);
 
   --radius-sm: 0.25rem;
   --radius-DEFAULT: 0.5rem;
@@ -37,7 +39,7 @@
 
 @layer utilities {
   .container-main {
-    @apply mx-auto w-full max-w-[1200px] px-4 md:px-6 lg:px-10;
+    @apply mx-auto w-full max-w-[1248px] px-4 md:px-6 lg:px-10;
   }
 
   .section-padding {
@@ -50,5 +52,34 @@
 
   .heading-accent-left {
     @apply relative inline-block pb-3 after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-12 after:bg-gold;
+  }
+
+  .slider-shadow {
+    box-shadow: var(--shadow-slider);
+  }
+
+  .animate-card {
+    @apply transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-card-hover;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.7s ease-out forwards;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in {
+    animation: none;
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { revalidateSiteLayout } from "@/app/actions/revalidate";
 import { AdminHeader } from "@/components/admin/AdminSidebar";
 import { ImageUploadField } from "@/components/admin/ImageUploadField";
 import { Button } from "@/components/ui/Button";
@@ -26,10 +27,15 @@ export default function SettingsAdminPage() {
     setSaving(true);
     try {
       await saveSiteSettings(settings);
+      await revalidateSiteLayout();
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
-    } catch {
-      alert("Kaydetme başarısız. Firebase yapılandırmasını kontrol edin.");
+    } catch (err) {
+      alert(
+        err instanceof Error
+          ? err.message
+          : "Kaydetme başarısız. Firebase yapılandırmasını kontrol edin."
+      );
     } finally {
       setSaving(false);
     }
@@ -59,7 +65,7 @@ export default function SettingsAdminPage() {
           label="Site Logosu"
           value={settings.logoUrl ?? ""}
           onChange={(v) => update("logoUrl", v)}
-          hint="PNG veya SVG önerilir. Boş bırakılırsa site adı metin olarak gösterilir."
+          hint="Dosya yükleyin veya Firebase Storage / harici bir görsel URL'si girin. Kaydet'e bastıktan sonra site güncellenir."
           previewHeight={100}
         />
 

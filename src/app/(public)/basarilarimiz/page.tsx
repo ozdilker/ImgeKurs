@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { PageHero } from "@/components/layout/PageHero";
+import { AnimatedSection } from "@/components/ui/AnimatedSection";
 import { getPageContent, getSuccessStories } from "@/lib/firebase/firestore";
 import type { Metadata } from "next";
 
@@ -46,6 +47,7 @@ export default async function SuccessPage() {
         fallbackSubtitle="Her yıl artan başarı grafiklerimizle geleceği birlikte inşa ediyoruz."
       />
 
+      <AnimatedSection>
       <section className="section-padding bg-white">
         <div className="container-main">
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -54,7 +56,7 @@ export default async function SuccessPage() {
               return (
                 <div
                   key={stat.label}
-                  className="rounded-2xl bg-white p-6 text-center shadow-card"
+                  className="animate-card rounded-2xl bg-white p-6 text-center shadow-card"
                 >
                   <Icon className="mx-auto mb-3 h-8 w-8 text-gold" />
                   <p className="text-3xl font-bold text-primary">{stat.value}</p>
@@ -75,7 +77,7 @@ export default async function SuccessPage() {
             {stories.map((story) => (
               <article
                 key={story.id}
-                className="overflow-hidden rounded-2xl bg-white shadow-card"
+                className="animate-card overflow-hidden rounded-2xl bg-white shadow-card"
               >
                 <div className="relative h-48">
                   <Image
@@ -105,7 +107,9 @@ export default async function SuccessPage() {
           </div>
         </div>
       </section>
+      </AnimatedSection>
 
+      <AnimatedSection delay={150}>
       <section className="section-padding bg-white">
         <div className="container-main grid items-center gap-12 lg:grid-cols-2">
           <div>
@@ -167,7 +171,7 @@ export default async function SuccessPage() {
             ].map((review) => (
               <div
                 key={review.name}
-                className="relative rounded-2xl bg-white p-8 shadow-card"
+                className="animate-card relative rounded-2xl bg-white p-8 shadow-card"
               >
                 <span className="absolute right-6 top-4 text-6xl font-serif text-gold/20">
                   &ldquo;
@@ -182,7 +186,9 @@ export default async function SuccessPage() {
           </div>
         </div>
       </section>
+      </AnimatedSection>
 
+      <AnimatedSection direction="fade">
       <section className="bg-primary py-20 text-center">
         <div className="container-main">
           <h2 className="mb-4 text-3xl font-bold text-white">
@@ -198,6 +204,7 @@ export default async function SuccessPage() {
           </Link>
         </div>
       </section>
+      </AnimatedSection>
     </>
   );
 }

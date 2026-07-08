@@ -49,7 +49,20 @@ export async function getSiteSettings(): Promise<SiteSettings> {
 export async function saveSiteSettings(settings: SiteSettings): Promise<void> {
   const firestore = db();
   if (!firestore) throw new Error("Firebase yapılandırılmamış");
-  await setDoc(doc(firestore, "settings", "site"), settings, { merge: true });
+
+  const payload = { ...settings };
+
+  if (payload.logoUrl?.startsWith("data:")) {
+    throw new Error(
+      "Logo base64 olarak kaydedilemez. Lütfen 'Yükle' butonunu kullanın veya bir görsel URL'si girin."
+    );
+  }
+
+  if (payload.logoUrl === "") {
+    payload.logoUrl = undefined;
+  }
+
+  await setDoc(doc(firestore, "settings", "site"), payload, { merge: true });
 }
 
 export async function getCourses(): Promise<Course[]> {
@@ -268,14 +281,7 @@ export async function updateRegistrationStatus(
   await setDoc(doc(firestore, "registrations", id), { status }, { merge: true });
 }
 
-export async function uploadImagePlaceholder(
-  file: File
-): Promise<string> {
-  // Client-side upload via API route
-  const formData = new FormData();
-  formData.append("file", file);
-  const res = await fetch("/api/upload", { method: "POST", body: formData });
-  if (!res.ok) throw new Error("Yükleme başarısız");
-  const data = await res.json();
-  return data.url as string;
+export async function uploadImagePlaceholder(file: File): Promise<string> {
+  const { uploadImage } = await import("./storage");
+  return uploadImage(file, "uploads");
 }

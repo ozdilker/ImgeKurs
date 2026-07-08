@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { revalidateSiteLayout } from "@/app/actions/revalidate";
 import { AdminHeader } from "@/components/admin/AdminSidebar";
 import { Button } from "@/components/ui/Button";
 import { getPageContent, savePageContent } from "@/lib/firebase/firestore";
@@ -26,6 +27,7 @@ export default function PagesAdminPage() {
     setSaving(true);
     try {
       await savePageContent(page);
+      await revalidateSiteLayout();
       alert("Sayfa kaydedildi.");
     } catch {
       alert("Kaydetme başarısız. Firebase bağlantısını kontrol edin.");

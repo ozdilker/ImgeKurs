@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { SiteSettings } from "@/lib/types";
 
@@ -14,26 +13,15 @@ export function SiteLogo({
   link = true,
 }: SiteLogoProps) {
   const isFooter = variant === "footer";
-  const height = isFooter ? 48 : 40;
+  const logoUrl = settings.logoUrl?.trim();
 
-  const content = settings.logoUrl ? (
-    settings.logoUrl.startsWith("data:") ? (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={settings.logoUrl}
-        alt={settings.siteName}
-        className={`h-auto w-auto object-contain ${isFooter ? "max-h-12" : "max-h-10 md:max-h-12"}`}
-      />
-    ) : (
-      <Image
-        src={settings.logoUrl}
-        alt={settings.siteName}
-        width={160}
-        height={height}
-        className={`h-auto w-auto object-contain ${isFooter ? "max-h-12" : "max-h-10 md:max-h-12"}`}
-        priority={variant === "header"}
-      />
-    )
+  const content = logoUrl ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={logoUrl}
+      alt={settings.siteName}
+      className={`h-auto w-auto object-contain ${isFooter ? "max-h-12" : "max-h-10 md:max-h-12"}`}
+    />
   ) : (
     <span className="flex items-center gap-1">
       <span

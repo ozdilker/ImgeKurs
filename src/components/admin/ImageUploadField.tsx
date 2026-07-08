@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useRef, useState } from "react";
 import { Upload } from "lucide-react";
 import { uploadImagePlaceholder } from "@/lib/firebase/firestore";
@@ -30,8 +29,8 @@ export function ImageUploadField({
     try {
       const url = await uploadImagePlaceholder(file);
       onChange(url);
-    } catch {
-      alert("Görsel yüklenemedi.");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Görsel yüklenemedi.");
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";
@@ -46,12 +45,8 @@ export function ImageUploadField({
           className="relative mb-3 flex items-center justify-center overflow-hidden rounded-lg border border-outline/20 bg-surface-gray p-2"
           style={{ height: previewHeight }}
         >
-          {value.startsWith("data:") ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={value} alt="Önizleme" className="max-h-full max-w-full object-contain" />
-          ) : (
-            <Image src={value} alt="Önizleme" fill className="object-contain p-2" />
-          )}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={value} alt="Önizleme" className="max-h-full max-w-full object-contain" />
         </div>
       )}
       <div className="flex gap-2">
