@@ -81,65 +81,8 @@ export function createDefaultPage(slug: PageSlug): PageContent {
     case "hakkimizda":
       return {
         ...base,
-        heroTitle: "Geleceğe Güvenle Hazırlıyoruz",
-        heroSubtitle:
-          "Öğrenci odaklı, modern ve butik eğitim anlayışımızla Bahçelievler'in güvenilir eğitim merkezi.",
-        sections: [
-          {
-            id: "who-we-are",
-            type: "text-image",
-            title: "Biz Kimiz?",
-            content:
-              "Bahçelievler İmge VIP Kurs Merkezi, 15 yılı aşkın tecrübesiyle öğrencilerini en prestijli üniversitelere ve liselerine hazırlayan köklü bir eğitim kurumudur. VIP sınıf konseptimizle her öğrenciye birebir ilgi gösteriyor, akademik başarıyı kişisel gelişimle birleştiriyoruz.\n\nModern sınıflarımız, uzman eğitim kadromuz ve kişiselleştirilmiş takip sistemimizle öğrencilerimizin potansiyelini en üst düzeye çıkarıyoruz.",
-            imageUrl:
-              "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800&q=80",
-          },
-          {
-            id: "mission-vision",
-            type: "mission-vision",
-            items: [
-              {
-                title: "Misyonumuz",
-                description:
-                  "Her öğrencinin bireysel potansiyelini keşfederek, akademik mükemmelliği destekleyen, güvenli ve ilham verici bir öğrenme ortamı sunmak.",
-                icon: "target",
-              },
-              {
-                title: "Vizyonumuz",
-                description:
-                  "Türkiye'nin en saygın eğitim kurumlarından biri olarak, geleceğin liderlerini yetiştirmek.",
-                icon: "eye",
-              },
-            ],
-          },
-          {
-            id: "values",
-            type: "values",
-            title: "Değerlerimiz",
-            items: [
-              {
-                title: "Birebir Takip",
-                description: "Her öğrenci için kişisel gelişim planı.",
-                icon: "user-search",
-              },
-              {
-                title: "Uzman Kadro",
-                description: "Alanında deneyimli eğitmenler.",
-                icon: "graduation-cap",
-              },
-              {
-                title: "Modern Sınıflar",
-                description: "Teknoloji destekli eğitim ortamı.",
-                icon: "monitor",
-              },
-              {
-                title: "Başarı Odaklılık",
-                description: "Hedefe yönelik çalışma sistemi.",
-                icon: "medal",
-              },
-            ],
-          },
-        ],
+        heroTitle: "Hakkımızda",
+        heroSubtitle: "",
       };
     case "egitim-programi":
       return {

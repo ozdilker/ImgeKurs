@@ -121,8 +121,41 @@ export type Registration = {
   school?: string;
   notes?: string;
   kvkkAccepted: boolean;
+  source?: "contact" | "pre-registration";
+  convertedStudentId?: string;
   createdAt: string;
   status: "new" | "contacted" | "enrolled";
+};
+
+export type Student = {
+  id: string;
+  fullName: string;
+  gradeLevel: string;
+  school?: string;
+  phone?: string;
+  email?: string;
+  parentName: string;
+  parentPhone: string;
+  parentEmail?: string;
+  classSectionId?: string;
+  status: "active" | "inactive" | "graduated" | "withdrawn";
+  registrationId?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ClassSection = {
+  id: string;
+  name: string;
+  gradeLevel: string;
+  programId?: string;
+  capacity: number;
+  schedule?: string;
+  academicYear: string;
+  status: "open" | "full" | "closed";
+  order: number;
+  createdAt: string;
 };
 
 export type AdminUser = {

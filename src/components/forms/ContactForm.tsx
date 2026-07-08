@@ -4,19 +4,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { submitRegistration } from "@/lib/firebase/firestore";
 import { ArrowRight, Clock, Mail, MapPin, Phone } from "lucide-react";
+import { GRADE_LEVELS } from "@/lib/grades";
 import type { PageContent, SiteSettings } from "@/lib/types";
-
-const grades = [
-  "5. Sınıf",
-  "6. Sınıf",
-  "7. Sınıf",
-  "8. Sınıf",
-  "9. Sınıf",
-  "10. Sınıf",
-  "11. Sınıf",
-  "12. Sınıf",
-  "Mezun",
-];
 
 export function ContactForm({
   settings,
@@ -50,6 +39,7 @@ export function ContactForm({
         school: (data.get("school") as string) || undefined,
         notes: (data.get("notes") as string) || undefined,
         kvkkAccepted: true,
+        source: "contact",
       });
       setSuccess(true);
       form.reset();
@@ -218,7 +208,7 @@ export function ContactForm({
                         <option value="" disabled>
                           Seçiniz
                         </option>
-                        {grades.map((g) => (
+                        {GRADE_LEVELS.map((g) => (
                           <option key={g} value={g}>
                             {g}
                           </option>

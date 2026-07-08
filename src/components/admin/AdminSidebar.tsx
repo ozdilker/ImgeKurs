@@ -4,10 +4,12 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   BookOpen,
+  ClipboardList,
   GraduationCap,
   Image,
   LayoutDashboard,
   LogOut,
+  School,
   Settings,
   Trophy,
   Users,
@@ -19,8 +21,10 @@ import { Button } from "../ui/Button";
 
 const navItems = [
   { label: "Panel", href: "/admin", icon: LayoutDashboard },
+  { label: "Kayıt Başvuruları", href: "/admin/basvurular", icon: ClipboardList },
+  { label: "Öğrenci Yönetimi", href: "/admin/ogrenciler", icon: Users },
+  { label: "Sınıf Yönetimi", href: "/admin/siniflar", icon: School },
   { label: "Kurs Yönetimi", href: "/admin/kurslar", icon: GraduationCap },
-  { label: "Öğrenci Listesi", href: "/admin/ogrenciler", icon: Users },
   { label: "Başarı Hikayeleri", href: "/admin/basarilar", icon: Trophy },
   { label: "Galeri Ayarları", href: "/admin/galeri", icon: Image },
   { label: "Sayfa Yönetimi", href: "/admin/sayfalar", icon: FileText },

@@ -4,17 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { submitRegistration } from "@/lib/firebase/firestore";
 
-const grades = [
-  "5. Sınıf",
-  "6. Sınıf",
-  "7. Sınıf",
-  "8. Sınıf",
-  "9. Sınıf",
-  "10. Sınıf",
-  "11. Sınıf",
-  "12. Sınıf",
-  "Mezun",
-];
+import { GRADE_LEVELS } from "@/lib/grades";
 
 export function PreRegistrationForm() {
   const [loading, setLoading] = useState(false);
@@ -36,6 +26,7 @@ export function PreRegistrationForm() {
         school: (data.get("school") as string) || undefined,
         notes: (data.get("notes") as string) || undefined,
         kvkkAccepted: data.get("kvkk") === "on",
+        source: "pre-registration",
       });
       setSuccess(true);
       form.reset();
@@ -86,7 +77,7 @@ export function PreRegistrationForm() {
           <option value="" disabled className="text-primary">
             Sınıf Seçiniz
           </option>
-          {grades.map((g) => (
+          {GRADE_LEVELS.map((g) => (
             <option key={g} value={g} className="text-primary">
               {g}
             </option>
@@ -102,10 +93,7 @@ export function PreRegistrationForm() {
           {loading ? "Gönderiliyor..." : "BİLGİ ALMAK İSTİYORUM"}
         </Button>
         <p className="text-center text-xs text-white/50">
-          Veya hemen bizi arayın:{" "}
-          <a href="tel:+902125550123" className="text-gold">
-            0212 555 01 23
-          </a>
+          Formu gönderin, en kısa sürede sizinle iletişime geçelim.
         </p>
       </form>
     </div>
