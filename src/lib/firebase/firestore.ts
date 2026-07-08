@@ -122,6 +122,32 @@ export async function deleteSuccessStory(id: string): Promise<void> {
   await deleteDoc(doc(requireDb(), "successStories", id));
 }
 
+export async function bulkSaveSuccessStories(stories: SuccessStory[]): Promise<number> {
+  const firestore = requireDb();
+  const chunkSize = 400;
+
+  for (let i = 0; i < stories.length; i += chunkSize) {
+    const batch = writeBatch(firestore);
+    const chunk = stories.slice(i, i + chunkSize);
+
+    chunk.forEach((story) => {
+      const ref = doc(firestore, "successStories", story.id);
+      batch.set(ref, {
+        ...story,
+        name: story.name.trim(),
+        rank: story.rank.trim(),
+        university: story.university.trim(),
+        department: story.department?.trim() ?? "",
+        quote: story.quote?.trim() ?? "",
+      });
+    });
+
+    await batch.commit();
+  }
+
+  return stories.length;
+}
+
 export async function getGalleryItems(): Promise<GalleryItem[]> {
   return fetchOrdered<GalleryItem>("gallery", "order");
 }

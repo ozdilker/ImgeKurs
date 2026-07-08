@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { PageHero } from "@/components/layout/PageHero";
 import { AnimatedSection } from "@/components/ui/AnimatedSection";
 import { getPageContent, getSuccessStories } from "@/lib/firebase/firestore";
+import { resolveSuccessStoryImage } from "@/lib/success-story-utils";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -74,14 +75,19 @@ export default async function SuccessPage() {
             Gurur Tablomuz
           </h2>
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {stories.map((story) => (
+            {stories.length === 0 ? (
+              <p className="col-span-full py-12 text-center text-slate-text">
+                Gurur tablomuz yakında güncellenecek.
+              </p>
+            ) : (
+              stories.map((story) => (
               <article
                 key={story.id}
                 className="animate-card overflow-hidden rounded-2xl bg-white shadow-card"
               >
-                <div className="relative h-48">
+                <div className="relative h-48 bg-surface-gray">
                   <Image
-                    src={story.imageUrl}
+                    src={resolveSuccessStoryImage(story.imageUrl)}
                     alt={story.name}
                     fill
                     className="object-cover"
@@ -98,12 +104,15 @@ export default async function SuccessPage() {
                     {story.university}
                     {story.department && ` - ${story.department}`}
                   </p>
-                  <blockquote className="rounded-lg bg-surface-gray p-4 text-sm italic text-slate-text">
-                    &ldquo;{story.quote}&rdquo;
-                  </blockquote>
+                  {story.quote && (
+                    <blockquote className="rounded-lg bg-surface-gray p-4 text-sm italic text-slate-text">
+                      &ldquo;{story.quote}&rdquo;
+                    </blockquote>
+                  )}
                 </div>
               </article>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </section>
