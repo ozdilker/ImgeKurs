@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #002744;
+  --color-primary-container: #1a3d5d;
+  --color-navy-deep: #1a3d5d;
+  --color-gold: #d4af37;
+  --color-gold-medal: #d4af37;
+  --color-accent-orange: #f15a24;
+  --color-surface: #fbf9f8;
+  --color-surface-gray: #f7f7f7;
+  --color-slate-text: #4a5568;
+  --color-on-surface: #1b1c1c;
+  --color-outline: #73777e;
+
+  --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+
+  --shadow-card: 0 4px 20px rgba(0, 39, 68, 0.05);
+  --shadow-card-hover: 0 8px 30px rgba(0, 39, 68, 0.1);
+
+  --radius-sm: 0.25rem;
+  --radius-DEFAULT: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-surface text-on-surface antialiased;
+  }
+}
+
+@layer utilities {
+  .container-main {
+    @apply mx-auto w-full max-w-[1200px] px-4 md:px-6 lg:px-10;
+  }
+
+  .section-padding {
+    @apply py-16 md:py-20 lg:py-24;
+  }
+
+  .heading-accent {
+    @apply relative inline-block pb-3 after:absolute after:bottom-0 after:left-1/2 after:h-0.5 after:w-12 after:-translate-x-1/2 after:bg-gold;
+  }
+
+  .heading-accent-left {
+    @apply relative inline-block pb-3 after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-12 after:bg-gold;
+  }
+}

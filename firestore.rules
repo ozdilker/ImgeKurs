@@ -1,0 +1,35 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Herkes okuyabilir (public site)
+    match /settings/{doc} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /courses/{doc} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /successStories/{doc} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /gallery/{doc} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /videoLessons/{doc} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /pages/{doc} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /registrations/{doc} {
+      allow create: if true;
+      allow read, update: if request.auth != null;
+    }
+  }
+}

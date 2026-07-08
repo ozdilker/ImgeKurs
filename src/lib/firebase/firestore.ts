@@ -1,0 +1,246 @@
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  orderBy,
+  query,
+  setDoc,
+  deleteDoc,
+  addDoc,
+  type Firestore,
+} from "firebase/firestore";
+import { getClientDb, isFirebaseConfigured } from "./client";
+import type {
+  Course,
+  GalleryItem,
+  PageContent,
+  Registration,
+  SiteSettings,
+  SuccessStory,
+  VideoLesson,
+} from "../types";
+import {
+  defaultCourses,
+  defaultGallery,
+  defaultPages,
+  defaultSiteSettings,
+  defaultSuccessStories,
+  defaultVideoLessons,
+} from "../seed-data";
+
+function db(): Firestore | null {
+  return getClientDb();
+}
+
+export async function getSiteSettings(): Promise<SiteSettings> {
+  const firestore = db();
+  if (!firestore || !isFirebaseConfigured()) return defaultSiteSettings;
+  try {
+    const snap = await getDoc(doc(firestore, "settings", "site"));
+    return snap.exists()
+      ? ({ ...defaultSiteSettings, ...snap.data() } as SiteSettings)
+      : defaultSiteSettings;
+  } catch {
+    return defaultSiteSettings;
+  }
+}
+
+export async function saveSiteSettings(settings: SiteSettings): Promise<void> {
+  const firestore = db();
+  if (!firestore) throw new Error("Firebase yapılandırılmamış");
+  await setDoc(doc(firestore, "settings", "site"), settings, { merge: true });
+}
+
+export async function getCourses(): Promise<Course[]> {
+  const firestore = db();
+  if (!firestore || !isFirebaseConfigured()) return defaultCourses;
+  try {
+    const q = query(collection(firestore, "courses"), orderBy("order", "asc"));
+    const snap = await getDocs(q);
+    if (snap.empty) return defaultCourses;
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Course));
+  } catch {
+    return defaultCourses;
+  }
+}
+
+export async function getCourseBySlug(slug: string): Promise<Course | null> {
+  const courses = await getCourses();
+  return courses.find((c) => c.slug === slug) ?? null;
+}
+
+export async function saveCourse(course: Course): Promise<void> {
+  const firestore = db();
+  if (!firestore) throw new Error("Firebase yapılandırılmamış");
+  await setDoc(doc(firestore, "courses", course.id), course);
+}
+
+export async function deleteCourse(id: string): Promise<void> {
+  const firestore = db();
+  if (!firestore) throw new Error("Firebase yapılandırılmamış");
+  await deleteDoc(doc(firestore, "courses", id));
+}
+
+export async function getSuccessStories(): Promise<SuccessStory[]> {
+  const firestore = db();
+  if (!firestore || !isFirebaseConfigured()) return defaultSuccessStories;
+  try {
+    const q = query(
+      collection(firestore, "successStories"),
+      orderBy("order", "asc")
+    );
+    const snap = await getDocs(q);
+    if (snap.empty) return defaultSuccessStories;
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() } as SuccessStory));
+  } catch {
+    return defaultSuccessStories;
+  }
+}
+
+export async function saveSuccessStory(story: SuccessStory): Promise<void> {
+  const firestore = db();
+  if (!firestore) throw new Error("Firebase yapılandırılmamış");
+  await setDoc(doc(firestore, "successStories", story.id), story);
+}
+
+export async function deleteSuccessStory(id: string): Promise<void> {
+  const firestore = db();
+  if (!firestore) throw new Error("Firebase yapılandırılmamış");
+  await deleteDoc(doc(firestore, "successStories", id));
+}
+
+export async function getGalleryItems(): Promise<GalleryItem[]> {
+  const firestore = db();
+  if (!firestore || !isFirebaseConfigured()) return defaultGallery;
+  try {
+    const q = query(collection(firestore, "gallery"), orderBy("order", "asc"));
+    const snap = await getDocs(q);
+    if (snap.empty) return defaultGallery;
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() } as GalleryItem));
+  } catch {
+    return defaultGallery;
+  }
+}
+
+export async function saveGalleryItem(item: GalleryItem): Promise<void> {
+  const firestore = db();
+  if (!firestore) throw new Error("Firebase yapılandırılmamış");
+  await setDoc(doc(firestore, "gallery", item.id), item);
+}
+
+export async function deleteGalleryItem(id: string): Promise<void> {
+  const firestore = db();
+  if (!firestore) throw new Error("Firebase yapılandırılmamış");
+  await deleteDoc(doc(firestore, "gallery", id));
+}
+
+export async function getVideoLessons(): Promise<VideoLesson[]> {
+  const firestore = db();
+  if (!firestore || !isFirebaseConfigured()) return defaultVideoLessons;
+  try {
+    const q = query(
+      collection(firestore, "videoLessons"),
+      orderBy("order", "asc")
+    );
+    const snap = await getDocs(q);
+    if (snap.empty) return defaultVideoLessons;
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() } as VideoLesson));
+  } catch {
+    return defaultVideoLessons;
+  }
+}
+
+export async function getVideoLessonBySlug(
+  slug: string
+): Promise<VideoLesson | null> {
+  const lessons = await getVideoLessons();
+  return lessons.find((l) => l.slug === slug) ?? null;
+}
+
+export async function saveVideoLesson(lesson: VideoLesson): Promise<void> {
+  const firestore = db();
+  if (!firestore) throw new Error("Firebase yapılandırılmamış");
+  await setDoc(doc(firestore, "videoLessons", lesson.id), lesson);
+}
+
+export async function deleteVideoLesson(id: string): Promise<void> {
+  const firestore = db();
+  if (!firestore) throw new Error("Firebase yapılandırılmamış");
+  await deleteDoc(doc(firestore, "videoLessons", id));
+}
+
+export async function getPageContent(slug: string): Promise<PageContent | null> {
+  const firestore = db();
+  const fallback = defaultPages[slug] ?? null;
+  if (!firestore || !isFirebaseConfigured()) return fallback;
+  try {
+    const snap = await getDoc(doc(firestore, "pages", slug));
+    if (!snap.exists()) return fallback;
+    return { id: snap.id, ...snap.data() } as PageContent;
+  } catch {
+    return fallback;
+  }
+}
+
+export async function savePageContent(page: PageContent): Promise<void> {
+  const firestore = db();
+  if (!firestore) throw new Error("Firebase yapılandırılmamış");
+  await setDoc(
+    doc(firestore, "pages", page.slug),
+    { ...page, updatedAt: new Date().toISOString() },
+    { merge: true }
+  );
+}
+
+export async function submitRegistration(
+  data: Omit<Registration, "id" | "createdAt" | "status">
+): Promise<string> {
+  const firestore = db();
+  if (!firestore || !isFirebaseConfigured()) {
+    console.log("Registration (demo mode):", data);
+    return "demo-" + Date.now();
+  }
+  const ref = await addDoc(collection(firestore, "registrations"), {
+    ...data,
+    status: "new",
+    createdAt: new Date().toISOString(),
+  });
+  return ref.id;
+}
+
+export async function getRegistrations(): Promise<Registration[]> {
+  const firestore = db();
+  if (!firestore || !isFirebaseConfigured()) return [];
+  try {
+    const q = query(
+      collection(firestore, "registrations"),
+      orderBy("createdAt", "desc")
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Registration));
+  } catch {
+    return [];
+  }
+}
+
+export async function updateRegistrationStatus(
+  id: string,
+  status: Registration["status"]
+): Promise<void> {
+  const firestore = db();
+  if (!firestore) throw new Error("Firebase yapılandırılmamış");
+  await setDoc(doc(firestore, "registrations", id), { status }, { merge: true });
+}
+
+export async function uploadImagePlaceholder(
+  file: File
+): Promise<string> {
+  // Client-side upload via API route
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await fetch("/api/upload", { method: "POST", body: formData });
+  if (!res.ok) throw new Error("Yükleme başarısız");
+  const data = await res.json();
+  return data.url as string;
+}
