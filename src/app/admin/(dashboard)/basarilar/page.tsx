@@ -153,7 +153,7 @@ export default function SuccessAdminPage() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <input
-              placeholder="Ad Soyad *"
+              placeholder="İsim *"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               required
@@ -173,9 +173,10 @@ export default function SuccessAdminPage() {
               className="rounded-lg border px-4 py-2"
             />
             <input
-              placeholder="Bölüm"
+              placeholder="Bölüm *"
               value={form.department}
               onChange={(e) => setForm({ ...form, department: e.target.value })}
+              required
               className="rounded-lg border px-4 py-2"
             />
           </div>

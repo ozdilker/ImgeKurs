@@ -1,18 +1,15 @@
-import Image from "next/image";
 import Link from "next/link";
 import {
-  Building2,
   Calendar,
   GraduationCap,
-  Star,
   Trophy,
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { PageHero } from "@/components/layout/PageHero";
 import { AnimatedSection } from "@/components/ui/AnimatedSection";
+import { SuccessStoryGrid } from "@/components/success/SuccessStoryGrid";
 import { getPageContent, getSuccessStories } from "@/lib/firebase/firestore";
-import { resolveSuccessStoryImage } from "@/lib/success-story-utils";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -71,50 +68,13 @@ export default async function SuccessPage() {
 
       <section className="section-padding bg-surface-gray">
         <div className="container-main">
-          <h2 className="heading-accent mb-12 text-center text-3xl font-bold text-primary">
-            Gurur Tablomuz
-          </h2>
+          <AnimatedSection>
+            <h2 className="heading-accent mb-12 text-center text-3xl font-bold text-primary">
+              Gurur Tablomuz
+            </h2>
+          </AnimatedSection>
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {stories.length === 0 ? (
-              <p className="col-span-full py-12 text-center text-slate-text">
-                Gurur tablomuz yakında güncellenecek.
-              </p>
-            ) : (
-              stories.map((story) => (
-              <article
-                key={story.id}
-                className="animate-card overflow-hidden rounded-2xl bg-white shadow-card"
-              >
-                <div className="relative h-48 bg-surface-gray">
-                  <Image
-                    src={resolveSuccessStoryImage(story.imageUrl)}
-                    alt={story.name}
-                    fill
-                    className="object-cover"
-                  />
-                  <Star className="absolute right-3 top-3 h-6 w-6 fill-gold text-gold" />
-                </div>
-                <div className="p-6">
-                  <h3 className="text-lg font-bold text-primary">{story.name}</h3>
-                  {story.rank && (
-                    <p className="mb-2 text-sm font-semibold text-gold">
-                      {story.rank}
-                    </p>
-                  )}
-                  <p className="mb-4 flex items-center gap-1 text-sm text-slate-text">
-                    <Building2 className="h-4 w-4" />
-                    {story.university}
-                    {story.department && ` - ${story.department}`}
-                  </p>
-                  {story.quote && (
-                    <blockquote className="rounded-lg bg-surface-gray p-4 text-sm italic text-slate-text">
-                      &ldquo;{story.quote}&rdquo;
-                    </blockquote>
-                  )}
-                </div>
-              </article>
-              ))
-            )}
+            <SuccessStoryGrid stories={stories} />
           </div>
         </div>
       </section>

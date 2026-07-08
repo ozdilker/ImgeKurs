@@ -39,7 +39,12 @@ export default async function GalleryPage() {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((item, i) => (
+            {items.length === 0 ? (
+              <p className="col-span-full py-12 text-center text-slate-text">
+                Galeri görselleri yakında eklenecek.
+              </p>
+            ) : (
+              items.map((item, i) => (
               <AnimatedSection key={item.id} delay={i * 80}>
                 <figure className="group animate-card relative aspect-[4/3] overflow-hidden rounded-2xl shadow-card">
                   <Image
@@ -54,7 +59,8 @@ export default async function GalleryPage() {
                   </figcaption>
                 </figure>
               </AnimatedSection>
-            ))}
+              ))
+            )}
           </div>
           </AnimatedSection>
         </div>

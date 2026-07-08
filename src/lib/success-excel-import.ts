@@ -6,7 +6,7 @@ export type SuccessExcelRow = {
   name: string;
   rank: string;
   university: string;
-  department?: string;
+  department: string;
   imageUrl?: string;
   quote?: string;
 };
@@ -17,10 +17,10 @@ export type SuccessExcelImportResult = {
 };
 
 const COLUMN_ALIASES: Record<keyof SuccessExcelRow, string[]> = {
-  name: ["ad soyad", "adsoyad", "isim", "name", "ogrenci adi", "ogrenci"],
+  name: ["isim", "ad soyad", "adsoyad", "name", "ogrenci adi", "ogrenci", "ad"],
   rank: ["derece", "basari", "siralama", "rank", "sonuc"],
-  university: ["universite", "okul", "university", "yerlestigi okul"],
-  department: ["bolum", "department", "program"],
+  university: ["universite", "university", "yerlestigi universite"],
+  department: ["bolum", "department", "program", "fakulte"],
   imageUrl: [
     "foto",
     "fotograf",
@@ -39,6 +39,7 @@ const COLUMN_ALIASES: Record<keyof SuccessExcelRow, string[]> = {
 
 function normalizeHeader(value: unknown): string {
   return String(value ?? "")
+    .replace(/^\uFEFF/, "")
     .trim()
     .toLowerCase()
     .normalize("NFD")
@@ -51,14 +52,28 @@ function normalizeHeader(value: unknown): string {
 
 function mapHeaders(headers: unknown[]): Partial<Record<keyof SuccessExcelRow, number>> {
   const mapping: Partial<Record<keyof SuccessExcelRow, number>> = {};
+  const normalizedHeaders = headers.map((header) => normalizeHeader(header));
+  const fields = Object.keys(COLUMN_ALIASES) as (keyof SuccessExcelRow)[];
 
-  headers.forEach((header, index) => {
-    const normalized = normalizeHeader(header);
+  normalizedHeaders.forEach((normalized, index) => {
     if (!normalized) return;
-
-    (Object.keys(COLUMN_ALIASES) as (keyof SuccessExcelRow)[]).forEach((field) => {
+    fields.forEach((field) => {
       if (mapping[field] !== undefined) return;
-      if (COLUMN_ALIASES[field].some((alias) => normalized === alias || normalized.includes(alias))) {
+      if (COLUMN_ALIASES[field].some((alias) => normalized === alias)) {
+        mapping[field] = index;
+      }
+    });
+  });
+
+  normalizedHeaders.forEach((normalized, index) => {
+    if (!normalized) return;
+    fields.forEach((field) => {
+      if (mapping[field] !== undefined) return;
+      if (
+        COLUMN_ALIASES[field].some(
+          (alias) => normalized.includes(alias) || alias.includes(normalized)
+        )
+      ) {
         mapping[field] = index;
       }
     });
@@ -74,8 +89,25 @@ function cellValue(row: unknown[], index: number | undefined): string {
   return String(value).trim();
 }
 
+function findHeaderRow(rawRows: unknown[][]): {
+  headerIndex: number;
+  mapping: Partial<Record<keyof SuccessExcelRow, number>>;
+} | null {
+  for (let i = 0; i < Math.min(rawRows.length, 10); i++) {
+    const mapping = mapHeaders(rawRows[i] as unknown[]);
+    if (
+      mapping.name !== undefined &&
+      mapping.university !== undefined &&
+      mapping.department !== undefined
+    ) {
+      return { headerIndex: i, mapping };
+    }
+  }
+  return null;
+}
+
 export function parseSuccessStoryExcel(buffer: ArrayBuffer): SuccessExcelImportResult {
-  const workbook = XLSX.read(buffer, { type: "array" });
+  const workbook = XLSX.read(buffer, { type: "array", cellDates: false });
   const sheetName = workbook.SheetNames[0];
   if (!sheetName) {
     return { rows: [], errors: ["Excel dosyasında sayfa bulunamadı."] };
@@ -85,7 +117,8 @@ export function parseSuccessStoryExcel(buffer: ArrayBuffer): SuccessExcelImportR
   const rawRows = XLSX.utils.sheet_to_json<unknown[]>(sheet, {
     header: 1,
     defval: "",
-  });
+    raw: false,
+  }) as unknown[][];
 
   if (rawRows.length < 2) {
     return {
@@ -94,28 +127,32 @@ export function parseSuccessStoryExcel(buffer: ArrayBuffer): SuccessExcelImportR
     };
   }
 
-  const mapping = mapHeaders(rawRows[0] as unknown[]);
-  const errors: string[] = [];
-
-  if (mapping.name === undefined) errors.push("Zorunlu sütun bulunamadı: Ad Soyad");
-  if (mapping.university === undefined) errors.push("Zorunlu sütun bulunamadı: Üniversite");
-
-  if (errors.length > 0) {
-    return { rows: [], errors };
+  const headerInfo = findHeaderRow(rawRows);
+  if (!headerInfo) {
+    return {
+      rows: [],
+      errors: [
+        "Zorunlu sütunlar bulunamadı. Beklenen: İsim, Üniversite, Bölüm",
+      ],
+    };
   }
 
+  const { headerIndex, mapping } = headerInfo;
+  const errors: string[] = [];
   const rows: SuccessExcelRow[] = [];
 
-  rawRows.slice(1).forEach((row, index) => {
+  rawRows.slice(headerIndex + 1).forEach((row, index) => {
     const cells = row as unknown[];
     const name = cellValue(cells, mapping.name);
     const rank = cellValue(cells, mapping.rank);
     const university = cellValue(cells, mapping.university);
+    const department = cellValue(cells, mapping.department);
 
-    if (!name && !rank && !university) return;
+    if (!name && !university && !department) return;
 
-    if (!name || !university) {
-      errors.push(`Satır ${index + 2}: Ad Soyad ve Üniversite zorunludur.`);
+    const rowNumber = headerIndex + index + 2;
+    if (!name || !university || !department) {
+      errors.push(`Satır ${rowNumber}: İsim, Üniversite ve Bölüm zorunludur.`);
       return;
     }
 
@@ -123,7 +160,7 @@ export function parseSuccessStoryExcel(buffer: ArrayBuffer): SuccessExcelImportR
       name,
       rank: rank || "",
       university,
-      department: cellValue(cells, mapping.department) || undefined,
+      department,
       imageUrl: cellValue(cells, mapping.imageUrl) || undefined,
       quote: cellValue(cells, mapping.quote) || undefined,
     });
@@ -140,12 +177,14 @@ export function excelRowsToSuccessStories(
   rows: SuccessExcelRow[],
   startOrder: number
 ): SuccessStory[] {
+  const baseId = Date.now();
+
   return rows.map((row, index) => ({
-    id: `success-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 7)}`,
+    id: `success-${baseId}-${index}-${Math.random().toString(36).slice(2, 7)}`,
     name: row.name,
     rank: row.rank,
     university: row.university,
-    department: row.department ?? "",
+    department: row.department,
     imageUrl: resolveSuccessStoryImage(row.imageUrl),
     quote: row.quote ?? "",
     order: startOrder + index + 1,
@@ -153,21 +192,14 @@ export function excelRowsToSuccessStories(
 }
 
 export function downloadSuccessStoryTemplate(): void {
-  const headers = [
-    "Ad Soyad",
-    "Derece",
-    "Üniversite",
-    "Bölüm",
-    "Foto URL",
-    "Alıntı",
-  ];
+  const headers = ["İsim", "Üniversite", "Bölüm", "Derece", "Foto URL", "Alıntı"];
   const example = [
     "Ahmet Yılmaz",
-    "YKS Sayısal Türkiye 882.si",
     "Boğaziçi Üniversitesi",
     "Bilgisayar Mühendisliği",
     "",
-    "İmge VIP'te aldığım destek sayesinde hedefime ulaştım.",
+    "",
+    "",
   ];
 
   const sheet = XLSX.utils.aoa_to_sheet([headers, example]);
