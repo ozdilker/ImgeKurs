@@ -2,38 +2,71 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { revalidateSiteLayout } from "@/app/actions/revalidate";
+import { revalidateHakkimizdaPage, revalidateSiteLayout } from "@/app/actions/revalidate";
 import { AdminHeader } from "@/components/admin/AdminSidebar";
+import { HakkimizdaSectionEditor } from "@/components/admin/HakkimizdaSectionEditor";
 import { Button } from "@/components/ui/Button";
+import { normalizeHakkimizdaPage } from "@/lib/hakkimizda-defaults";
 import { getPageContent, savePageContent } from "@/lib/firebase/firestore";
 import { createDefaultPage, pageRegistry, type PageSlug } from "@/lib/pages";
 import type { HeroSlide, PageContent, PageSection } from "@/lib/types";
 import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
 
+function withHakkimizdaDefaults(page: PageContent): PageContent {
+  if (page.slug !== "hakkimizda") return page;
+  return normalizeHakkimizdaPage(page);
+}
+
 export default function PagesAdminPage() {
   const [selectedSlug, setSelectedSlug] = useState<PageSlug>(pageRegistry[0].slug);
   const [page, setPage] = useState<PageContent | null>(null);
   const [saving, setSaving] = useState(false);
+  const [savingSectionId, setSavingSectionId] = useState<string | null>(null);
 
   useEffect(() => {
     getPageContent(selectedSlug).then((data) => {
-      setPage(data ?? createDefaultPage(selectedSlug as PageSlug));
+      const base = data ?? createDefaultPage(selectedSlug as PageSlug);
+      setPage(withHakkimizdaDefaults(base));
     });
   }, [selectedSlug]);
 
-  async function handleSave(e: React.FormEvent) {
-    e.preventDefault();
-    if (!page) return;
-    setSaving(true);
+  async function persistPage(nextPage: PageContent, sectionId?: string) {
+    if (sectionId) setSavingSectionId(sectionId);
+    else setSaving(true);
+
     try {
-      await savePageContent(page);
-      await revalidateSiteLayout();
-      alert("Sayfa kaydedildi.");
+      await savePageContent(nextPage);
+      setPage(nextPage);
+      if (nextPage.slug === "hakkimizda") {
+        await revalidateHakkimizdaPage();
+      } else {
+        await revalidateSiteLayout();
+      }
+      alert(sectionId ? "Bölüm kaydedildi." : "Sayfa kaydedildi.");
     } catch {
       alert("Kaydetme başarısız. Firebase bağlantısını kontrol edin.");
     } finally {
       setSaving(false);
+      setSavingSectionId(null);
     }
+  }
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault();
+    if (!page) return;
+    await persistPage(page);
+  }
+
+  async function handleSaveHero() {
+    if (!page) return;
+    await persistPage(page, "hero");
+  }
+
+  async function handleSaveSection(sectionIndex: number) {
+    if (!page) return;
+    const section = page.sections[sectionIndex];
+    if (!section) return;
+    await persistPage(page, section.id);
   }
 
   function updateSlide(index: number, field: keyof HeroSlide, value: string | boolean | number) {
@@ -86,12 +119,17 @@ export default function PagesAdminPage() {
   if (!page) return <p className="text-slate-text">Yükleniyor...</p>;
 
   const isHomePage = selectedSlug === "anasayfa";
+  const isHakkimizda = selectedSlug === "hakkimizda";
 
   return (
     <>
       <AdminHeader
         title="Sayfa Yönetimi"
-        subtitle="Tüm site sayfalarının içeriklerini düzenleyin."
+        subtitle={
+          isHakkimizda
+            ? "Hakkımızda sayfasının her bölümünü ayrı ayrı düzenleyin."
+            : "Tüm site sayfalarının içeriklerini düzenleyin."
+        }
       />
 
       <div className="mb-6 flex flex-wrap gap-2">
@@ -209,108 +247,120 @@ export default function PagesAdminPage() {
           </div>
         )}
 
-        {!isHomePage && (
-          <div className="rounded-2xl bg-white p-8 shadow-card space-y-4">
-            <h2 className="text-lg font-bold text-primary">Hero Bölümü</h2>
-            <Field
-              label="Hero Başlık"
-              value={page.heroTitle ?? ""}
-              onChange={(v) => setPage({ ...page, heroTitle: v })}
-            />
-            <div>
-              <label className="mb-1 block text-sm font-medium text-primary">
-                Hero Alt Metin
-              </label>
-              <textarea
-                value={page.heroSubtitle ?? ""}
-                onChange={(e) =>
-                  setPage({ ...page, heroSubtitle: e.target.value })
-                }
-                rows={3}
-                className="w-full rounded-lg border border-outline/30 px-4 py-3 focus:border-primary focus:outline-none"
-              />
-            </div>
-            <Field
-              label="Hero Görsel URL (opsiyonel)"
-              value={page.heroImageUrl ?? ""}
-              onChange={(v) => setPage({ ...page, heroImageUrl: v })}
-            />
-          </div>
-        )}
+        {isHakkimizda ? (
+          <HakkimizdaSectionEditor
+            page={page}
+            onChange={setPage}
+            onSaveSection={handleSaveSection}
+            onSaveHero={handleSaveHero}
+            savingSectionId={savingSectionId}
+          />
+        ) : (
+          <>
+            {!isHomePage && (
+              <div className="space-y-4 rounded-2xl bg-white p-8 shadow-card">
+                <h2 className="text-lg font-bold text-primary">Hero Bölümü</h2>
+                <Field
+                  label="Hero Başlık"
+                  value={page.heroTitle ?? ""}
+                  onChange={(v) => setPage({ ...page, heroTitle: v })}
+                />
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-primary">
+                    Hero Alt Metin
+                  </label>
+                  <textarea
+                    value={page.heroSubtitle ?? ""}
+                    onChange={(e) =>
+                      setPage({ ...page, heroSubtitle: e.target.value })
+                    }
+                    rows={3}
+                    className="w-full rounded-lg border border-outline/30 px-4 py-3 focus:border-primary focus:outline-none"
+                  />
+                </div>
+                <Field
+                  label="Hero Görsel URL (opsiyonel)"
+                  value={page.heroImageUrl ?? ""}
+                  onChange={(v) => setPage({ ...page, heroImageUrl: v })}
+                />
+              </div>
+            )}
 
-        {page.sections.length > 0 && (
-          <div className="rounded-2xl bg-white p-8 shadow-card space-y-6">
-            <h2 className="text-lg font-bold text-primary">Sayfa Bölümleri</h2>
-            {page.sections.map((section, idx) => {
-              if (section.type === "text-image") {
-                return (
-                  <div key={section.id} className="space-y-4 border-t pt-4">
-                    <h3 className="font-semibold text-primary">{section.title}</h3>
-                    <textarea
-                      value={section.content ?? ""}
-                      onChange={(e) =>
-                        updateSection(idx, { ...section, content: e.target.value })
-                      }
-                      rows={6}
-                      className="w-full rounded-lg border border-outline/30 px-4 py-3"
-                    />
-                    <Field
-                      label="Görsel URL"
-                      value={section.imageUrl ?? ""}
-                      onChange={(v) =>
-                        updateSection(idx, { ...section, imageUrl: v })
-                      }
-                    />
-                  </div>
-                );
-              }
-              if (section.type === "values" || section.type === "mission-vision") {
-                return (
-                  <div key={section.id} className="border-t pt-4">
-                    <h3 className="mb-4 font-semibold text-primary">
-                      {section.title ?? section.type}
-                    </h3>
-                    {section.items?.map((item, itemIdx) => (
-                      <div key={itemIdx} className="mb-4 rounded-lg bg-surface-gray p-4">
-                        <Field
-                          label="Başlık"
-                          value={item.title}
-                          onChange={(v) => {
-                            const items = [...(section.items ?? [])];
-                            items[itemIdx] = { ...item, title: v };
-                            updateSection(idx, { ...section, items });
-                          }}
+            {page.sections.length > 0 && (
+              <div className="space-y-6 rounded-2xl bg-white p-8 shadow-card">
+                <h2 className="text-lg font-bold text-primary">Sayfa Bölümleri</h2>
+                {page.sections.map((section, idx) => {
+                  if (section.type === "text-image") {
+                    return (
+                      <div key={section.id} className="space-y-4 border-t pt-4">
+                        <h3 className="font-semibold text-primary">{section.title}</h3>
+                        <textarea
+                          value={section.content ?? ""}
+                          onChange={(e) =>
+                            updateSection(idx, { ...section, content: e.target.value })
+                          }
+                          rows={6}
+                          className="w-full rounded-lg border border-outline/30 px-4 py-3"
                         />
-                        <div className="mt-2">
-                          <label className="mb-1 block text-sm font-medium text-primary">
-                            Açıklama
-                          </label>
-                          <textarea
-                            value={item.description}
-                            onChange={(e) => {
-                              const items = [...(section.items ?? [])];
-                              items[itemIdx] = {
-                                ...item,
-                                description: e.target.value,
-                              };
-                              updateSection(idx, { ...section, items });
-                            }}
-                            rows={2}
-                            className="w-full rounded-lg border border-outline/30 px-4 py-3"
-                          />
-                        </div>
+                        <Field
+                          label="Görsel URL"
+                          value={section.imageUrl ?? ""}
+                          onChange={(v) =>
+                            updateSection(idx, { ...section, imageUrl: v })
+                          }
+                        />
                       </div>
-                    ))}
-                  </div>
-                );
-              }
-              return null;
-            })}
-          </div>
+                    );
+                  }
+                  if (section.type === "values" || section.type === "mission-vision") {
+                    return (
+                      <div key={section.id} className="border-t pt-4">
+                        <h3 className="mb-4 font-semibold text-primary">
+                          {section.title ?? section.type}
+                        </h3>
+                        {section.items?.map((item, itemIdx) => (
+                          <div key={itemIdx} className="mb-4 rounded-lg bg-surface-gray p-4">
+                            <Field
+                              label="Başlık"
+                              value={item.title}
+                              onChange={(v) => {
+                                const items = [...(section.items ?? [])];
+                                items[itemIdx] = { ...item, title: v };
+                                updateSection(idx, { ...section, items });
+                              }}
+                            />
+                            <div className="mt-2">
+                              <label className="mb-1 block text-sm font-medium text-primary">
+                                Açıklama
+                              </label>
+                              <textarea
+                                value={item.description}
+                                onChange={(e) => {
+                                  const items = [...(section.items ?? [])];
+                                  items[itemIdx] = {
+                                    ...item,
+                                    description: e.target.value,
+                                  };
+                                  updateSection(idx, { ...section, items });
+                                }}
+                                rows={2}
+                                className="w-full rounded-lg border border-outline/30 px-4 py-3"
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  }
+                  return null;
+                })}
+              </div>
+            )}
+          </>
         )}
 
         <Button type="submit" disabled={saving}>
-          {saving ? "Kaydediliyor..." : "Sayfayı Kaydet"}
+          {saving ? "Kaydediliyor..." : "Tüm Sayfayı Kaydet"}
         </Button>
       </form>
     </>

@@ -3,11 +3,14 @@ import Link from "next/link";
 import { Eye, GraduationCap, Medal, Monitor, Target, UserSearch } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { getPageContent } from "@/lib/firebase/firestore";
+import type { PageSection } from "@/lib/types";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Hakkımızda",
 };
+
+export const revalidate = 60;
 
 const iconMap: Record<string, React.ReactNode> = {
   target: <Target className="h-6 w-6" />,
@@ -17,6 +20,74 @@ const iconMap: Record<string, React.ReactNode> = {
   monitor: <Monitor className="h-6 w-6" />,
   medal: <Medal className="h-6 w-6" />,
 };
+
+function TextImageSection({ section }: { section: PageSection }) {
+  const isDark = section.theme === "dark";
+
+  if (isDark) {
+    return (
+      <section className="section-padding bg-primary">
+        <div className="container-main grid items-center gap-12 lg:grid-cols-2">
+          <div>
+            <h2 className="mb-4 text-3xl font-bold text-gold">{section.title}</h2>
+            {section.content?.split("\n\n").map((p, i) => (
+              <p key={i} className="mb-4 text-white/70 leading-relaxed">
+                {p}
+              </p>
+            ))}
+            {section.buttonText && section.buttonLink && (
+              <Link href={section.buttonLink}>
+                <Button
+                  variant="outline"
+                  className="border-gold text-gold hover:bg-gold hover:text-primary"
+                >
+                  {section.buttonText}
+                </Button>
+              </Link>
+            )}
+          </div>
+          {section.imageUrl && (
+            <div className="relative h-80 overflow-hidden rounded-2xl border-2 border-gold/30 lg:h-96">
+              <Image
+                src={section.imageUrl}
+                alt={section.title ?? ""}
+                fill
+                className="object-cover"
+              />
+            </div>
+          )}
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="section-padding bg-white">
+      <div className="container-main grid items-center gap-12 lg:grid-cols-2">
+        <div>
+          <h2 className="heading-accent-left mb-6 text-3xl font-bold text-primary">
+            {section.title}
+          </h2>
+          {section.content?.split("\n\n").map((p, i) => (
+            <p key={i} className="mb-4 text-slate-text leading-relaxed">
+              {p}
+            </p>
+          ))}
+        </div>
+        {section.imageUrl && (
+          <div className="relative h-80 overflow-hidden rounded-2xl shadow-card lg:h-96">
+            <Image
+              src={section.imageUrl}
+              alt={section.title ?? ""}
+              fill
+              className="object-cover"
+            />
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
 
 export default async function AboutPage() {
   const page = await getPageContent("hakkimizda");
@@ -38,32 +109,7 @@ export default async function AboutPage() {
 
       {page.sections.map((section) => {
         if (section.type === "text-image") {
-          return (
-            <section key={section.id} className="section-padding bg-white">
-              <div className="container-main grid items-center gap-12 lg:grid-cols-2">
-                <div>
-                  <h2 className="heading-accent-left mb-6 text-3xl font-bold text-primary">
-                    {section.title}
-                  </h2>
-                  {section.content?.split("\n\n").map((p, i) => (
-                    <p key={i} className="mb-4 text-slate-text leading-relaxed">
-                      {p}
-                    </p>
-                  ))}
-                </div>
-                {section.imageUrl && (
-                  <div className="relative h-80 overflow-hidden rounded-2xl shadow-card lg:h-96">
-                    <Image
-                      src={section.imageUrl}
-                      alt={section.title ?? ""}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                )}
-              </div>
-            </section>
-          );
+          return <TextImageSection key={section.id} section={section} />;
         }
 
         if (section.type === "mission-vision") {
@@ -122,31 +168,6 @@ export default async function AboutPage() {
 
         return null;
       })}
-
-      <section className="section-padding bg-primary">
-        <div className="container-main grid items-center gap-12 lg:grid-cols-2">
-          <div>
-            <h2 className="mb-4 text-3xl font-bold text-gold">
-              Uzman Eğitim Kadromuz
-            </h2>
-            <p className="mb-8 text-white/70 leading-relaxed">
-              Alanında uzman, deneyimli ve öğrenci odaklı eğitmenlerimizle
-              her öğrencinin potansiyelini en üst düzeye çıkarıyoruz.
-            </p>
-            <Button variant="outline" className="border-gold text-gold hover:bg-gold hover:text-primary">
-              Tüm Kadroyu İncele →
-            </Button>
-          </div>
-          <div className="relative h-80 overflow-hidden rounded-2xl border-2 border-gold/30 lg:h-96">
-            <Image
-              src="https://images.unsplash.com/photo-1577896851231-70ef18881754?w=800&q=80"
-              alt="Eğitim kadrosu"
-              fill
-              className="object-cover"
-            />
-          </div>
-        </div>
-      </section>
     </>
   );
 }

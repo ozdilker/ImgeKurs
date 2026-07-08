@@ -80,6 +80,9 @@ export type PageSection = {
   title?: string;
   content?: string;
   imageUrl?: string;
+  buttonText?: string;
+  buttonLink?: string;
+  theme?: "light" | "dark";
   items?: SectionItem[];
 };
 

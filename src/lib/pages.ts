@@ -1,4 +1,5 @@
 import type { PageContent } from "./types";
+import { defaultHakkimizdaSections } from "./hakkimizda-defaults";
 
 export const pageRegistry = [
   { slug: "anasayfa", label: "Anasayfa", path: "/" },
@@ -81,8 +82,10 @@ export function createDefaultPage(slug: PageSlug): PageContent {
     case "hakkimizda":
       return {
         ...base,
-        heroTitle: "Hakkımızda",
-        heroSubtitle: "",
+        heroTitle: "Geleceğe Güvenle Hazırlıyoruz",
+        heroSubtitle:
+          "Öğrenci odaklı, modern ve butik eğitim anlayışımızla Bahçelievler'in güvenilir eğitim merkezi.",
+        sections: defaultHakkimizdaSections,
       };
     case "egitim-programi":
       return {

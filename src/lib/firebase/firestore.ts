@@ -24,6 +24,7 @@ import type {
   VideoLesson,
 } from "../types";
 import { defaultCourses, defaultSiteSettings } from "../seed-data";
+import { normalizeHakkimizdaPage } from "../hakkimizda-defaults";
 import { getDefaultPages } from "../pages";
 import { studentToFirestore } from "../student-firestore";
 import {
@@ -246,12 +247,20 @@ export async function getPageContent(slug: string): Promise<PageContent | null> 
   const defaults = getDefaultPages();
   const fallback = defaults[slug] ?? null;
   const firestore = db();
-  if (!firestore || !isFirebaseConfigured()) return fallback;
+  if (!firestore || !isFirebaseConfigured()) {
+    return slug === "hakkimizda" && fallback
+      ? normalizeHakkimizdaPage(fallback)
+      : fallback;
+  }
   try {
     const snap = await getDoc(doc(firestore, "pages", slug));
-    if (!snap.exists()) return fallback;
+    if (!snap.exists()) {
+      return slug === "hakkimizda" && fallback
+        ? normalizeHakkimizdaPage(fallback)
+        : fallback;
+    }
     const data = snap.data() as PageContent;
-    return {
+    const merged: PageContent = {
       ...fallback,
       ...data,
       sections: data.sections?.length ? data.sections : fallback?.sections ?? [],
@@ -259,8 +268,11 @@ export async function getPageContent(slug: string): Promise<PageContent | null> 
         ? data.heroSlides
         : fallback?.heroSlides,
     };
+    return slug === "hakkimizda" ? normalizeHakkimizdaPage(merged) : merged;
   } catch {
-    return fallback;
+    return slug === "hakkimizda" && fallback
+      ? normalizeHakkimizdaPage(fallback)
+      : fallback;
   }
 }
 

@@ -16,3 +16,7 @@ export async function revalidateProgramPages() {
   revalidatePath("/egitim-programi");
   revalidatePath("/egitim-detay", "layout");
 }
+
+export async function revalidateHakkimizdaPage() {
+  revalidatePath("/sayfa/hakkimizda");
+}
