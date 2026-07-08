@@ -1,7 +1,4 @@
-import Image from "next/image";
-import Link from "next/link";
-import { Clock, Users } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { ProgramCourseGrid } from "@/components/courses/ProgramCourseGrid";
 import { PageHero } from "@/components/layout/PageHero";
 import { PreRegistrationForm } from "@/components/forms/PreRegistrationForm";
 import { getCourses, getPageContent } from "@/lib/firebase/firestore";
@@ -31,62 +28,7 @@ export default async function ProgramsPage() {
       <section className="pb-16 pt-8">
         <div className="container-main">
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {activeCourses.slice(0, 3).map((course) => (
-              <article
-                key={course.id}
-                className={`relative overflow-hidden rounded-2xl bg-white shadow-card ${
-                  course.isVip ? "ring-2 ring-gold" : ""
-                }`}
-              >
-                {course.isVip && (
-                  <div className="absolute right-0 top-0 z-10 bg-gold px-8 py-1 text-xs font-bold text-primary rotate-45 translate-x-6 translate-y-4">
-                    VIP
-                  </div>
-                )}
-                <div className="relative h-48">
-                  <Image
-                    src={course.imageUrl}
-                    alt={course.title}
-                    fill
-                    className="object-cover"
-                  />
-                  <span className="absolute left-3 top-3 rounded bg-primary/80 px-2 py-1 text-xs font-semibold text-white">
-                    {course.category}
-                  </span>
-                </div>
-                <div className="p-6">
-                  <h3 className="mb-2 text-xl font-bold text-primary">
-                    {course.title}
-                  </h3>
-                  <p className="mb-4 text-sm text-slate-text">
-                    {course.description}
-                  </p>
-                  <div className="mb-6 space-y-2 text-sm text-slate-text">
-                    {course.schedule && (
-                      <p className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-gold" />
-                        {course.schedule}
-                      </p>
-                    )}
-                    {course.classSize && (
-                      <p className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-gold" />
-                        {course.classSize}
-                      </p>
-                    )}
-                  </div>
-                  <Link href={`/egitim-detay/${course.slug}`}>
-                    <Button
-                      variant={course.isVip ? "gold" : "outline"}
-                      className="w-full"
-                      size="sm"
-                    >
-                      {course.isVip ? "VIP Programı İncele" : "Programı İncele"}
-                    </Button>
-                  </Link>
-                </div>
-              </article>
-            ))}
+            <ProgramCourseGrid courses={activeCourses.slice(0, 3)} />
           </div>
         </div>
       </section>

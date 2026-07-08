@@ -154,6 +154,7 @@ export type ClassSection = {
   schedule?: string;
   academicYear: string;
   status: "open" | "full" | "closed";
+  isVip?: boolean;
   order: number;
   createdAt: string;
 };

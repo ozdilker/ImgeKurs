@@ -19,9 +19,27 @@ export function Header({ settings }: HeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
-  const isActive = (href: string) => {
-    if (href === "/") return pathname === "/";
-    return pathname.startsWith(href) && href !== "#";
+  const isNavItemActive = (item: (typeof mainNav)[number]) => {
+    if (item.href === "/") return pathname === "/";
+    if (item.href === "#") return false;
+
+    if (item.label === "Eğitim Programı") {
+      return pathname === "/egitim-programi";
+    }
+
+    if (item.children?.length) {
+      const childActive = item.children.some(
+        (child) =>
+          pathname === child.href || pathname.startsWith(`${child.href}/`)
+      );
+      if (childActive) return true;
+
+      if (item.label === "Eğitimlerimiz") {
+        return pathname.startsWith("/egitim-detay");
+      }
+    }
+
+    return pathname === item.href || pathname.startsWith(`${item.href}/`);
   };
 
   return (
@@ -41,7 +59,7 @@ export function Header({ settings }: HeaderProps) {
                 <button
                   className={cn(
                     "flex items-center gap-1 px-3 py-2 text-sm font-medium transition-colors",
-                    isActive(item.href)
+                    isNavItemActive(item)
                       ? "text-gold"
                       : "text-slate-text hover:text-primary"
                   )}
@@ -69,7 +87,7 @@ export function Header({ settings }: HeaderProps) {
                 href={item.href}
                 className={cn(
                   "relative px-3 py-2 text-sm font-medium transition-colors",
-                  isActive(item.href)
+                  isNavItemActive(item)
                     ? "text-gold after:absolute after:bottom-0 after:left-3 after:right-3 after:h-0.5 after:bg-gold"
                     : "text-slate-text hover:text-primary"
                 )}

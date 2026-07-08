@@ -23,6 +23,7 @@ const emptyForm = {
   schedule: "",
   academicYear: defaultAcademicYear,
   status: "open" as ClassSection["status"],
+  isVip: false,
 };
 
 export default function ClassSectionsAdminPage() {
@@ -67,6 +68,7 @@ export default function ClassSectionsAdminPage() {
       schedule: form.schedule.trim() || undefined,
       academicYear: form.academicYear.trim() || defaultAcademicYear,
       status: form.status,
+      isVip: form.isVip,
       order: editingId
         ? sections.find((s) => s.id === editingId)?.order ?? sections.length + 1
         : sections.length + 1,
@@ -101,6 +103,7 @@ export default function ClassSectionsAdminPage() {
       schedule: section.schedule ?? "",
       academicYear: section.academicYear,
       status: section.status,
+      isVip: section.isVip ?? false,
     });
   }
 
@@ -180,6 +183,15 @@ export default function ClassSectionsAdminPage() {
             <option value="full">Dolu</option>
             <option value="closed">Kapalı</option>
           </select>
+          <label className="flex items-center gap-2 rounded-lg border border-outline/20 px-4 py-2">
+            <input
+              type="checkbox"
+              checked={form.isVip}
+              onChange={(e) => setForm({ ...form, isVip: e.target.checked })}
+              className="h-4 w-4 accent-gold"
+            />
+            <span className="text-sm font-medium text-primary">VIP Sınıf</span>
+          </label>
         </div>
         <div className="flex gap-2">
           <Button type="submit">
@@ -214,10 +226,17 @@ export default function ClassSectionsAdminPage() {
             const count = studentCountBySection.get(section.id) ?? 0;
             const isFull = count >= section.capacity;
             return (
-              <div key={section.id} className="rounded-2xl bg-white p-5 shadow-card">
+              <div key={section.id} className={`rounded-2xl bg-white p-5 shadow-card ${section.isVip ? "ring-2 ring-gold" : ""}`}>
                 <div className="mb-3 flex items-start justify-between gap-3">
                   <div>
-                    <h3 className="font-bold text-primary">{section.name}</h3>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-bold text-primary">{section.name}</h3>
+                      {section.isVip && (
+                        <span className="rounded-full bg-gold px-2 py-0.5 text-xs font-bold text-primary">
+                          VIP
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm text-slate-text">{section.gradeLevel}</p>
                   </div>
                   <span
