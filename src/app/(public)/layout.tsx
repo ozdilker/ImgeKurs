@@ -11,7 +11,7 @@ export default async function PublicLayout({
 
   return (
     <>
-      <Header />
+      <Header settings={settings} />
       <main>{children}</main>
       <Footer settings={settings} />
     </>

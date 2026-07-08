@@ -23,11 +23,11 @@ import type {
 import {
   defaultCourses,
   defaultGallery,
-  defaultPages,
   defaultSiteSettings,
   defaultSuccessStories,
   defaultVideoLessons,
 } from "../seed-data";
+import { getDefaultPages } from "../pages";
 
 function db(): Firestore | null {
   return getClientDb();
@@ -171,15 +171,50 @@ export async function deleteVideoLesson(id: string): Promise<void> {
 }
 
 export async function getPageContent(slug: string): Promise<PageContent | null> {
+  const defaults = getDefaultPages();
+  const fallback = defaults[slug] ?? null;
   const firestore = db();
-  const fallback = defaultPages[slug] ?? null;
   if (!firestore || !isFirebaseConfigured()) return fallback;
   try {
     const snap = await getDoc(doc(firestore, "pages", slug));
     if (!snap.exists()) return fallback;
-    return { id: snap.id, ...snap.data() } as PageContent;
+    const data = snap.data() as PageContent;
+    return {
+      ...fallback,
+      ...data,
+      sections: data.sections?.length ? data.sections : fallback?.sections ?? [],
+      heroSlides: data.heroSlides?.length
+        ? data.heroSlides
+        : fallback?.heroSlides,
+    };
   } catch {
     return fallback;
+  }
+}
+
+export async function getAllPages(): Promise<PageContent[]> {
+  const defaults = getDefaultPages();
+  const firestore = db();
+  if (!firestore || !isFirebaseConfigured()) {
+    return Object.values(defaults);
+  }
+  try {
+    const snap = await getDocs(collection(firestore, "pages"));
+    const saved = Object.fromEntries(
+      snap.docs.map((d) => [d.id, { id: d.id, ...d.data() } as PageContent])
+    );
+    return Object.keys(defaults).map((slug) => ({
+      ...defaults[slug],
+      ...saved[slug],
+      sections: saved[slug]?.sections?.length
+        ? saved[slug].sections
+        : defaults[slug].sections,
+      heroSlides: saved[slug]?.heroSlides?.length
+        ? saved[slug].heroSlides
+        : defaults[slug].heroSlides,
+    }));
+  } catch {
+    return Object.values(defaults);
   }
 }
 

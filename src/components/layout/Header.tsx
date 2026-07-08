@@ -5,10 +5,16 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { mainNav } from "@/lib/seed-data";
+import type { SiteSettings } from "@/lib/types";
+import { SiteLogo } from "@/components/layout/SiteLogo";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 
-export function Header() {
+type HeaderProps = {
+  settings: Pick<SiteSettings, "siteName" | "logoUrl">;
+};
+
+export function Header({ settings }: HeaderProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -21,12 +27,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-outline/10 bg-white/95 backdrop-blur-md">
       <div className="container-main flex h-16 items-center justify-between md:h-20">
-        <Link href="/" className="flex items-center gap-1">
-          <span className="text-xl font-bold tracking-tight text-primary md:text-2xl">
-            İMGE
-          </span>
-          <span className="text-xl font-bold text-gold md:text-2xl">VIP</span>
-        </Link>
+        <SiteLogo settings={settings} variant="header" />
 
         <nav className="hidden items-center gap-1 lg:flex">
           {mainNav.map((item) =>

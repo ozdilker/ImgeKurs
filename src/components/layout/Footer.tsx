@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MapPin, Phone, Mail } from "lucide-react";
+import { SiteLogo } from "@/components/layout/SiteLogo";
 import type { SiteSettings } from "@/lib/types";
 
 interface FooterProps {
@@ -12,9 +13,8 @@ export function Footer({ settings }: FooterProps) {
       <div className="container-main section-padding pb-8">
         <div className="grid gap-10 md:grid-cols-3">
           <div>
-            <div className="mb-4 flex items-center gap-1">
-              <span className="text-2xl font-bold">İMGE</span>
-              <span className="text-2xl font-bold text-gold">VIP</span>
+            <div className="mb-4">
+              <SiteLogo settings={settings} variant="footer" />
             </div>
             <p className="text-sm leading-relaxed text-white/70">
               {settings.tagline}. Bahçelievler&apos;in güvenilir eğitim merkezi

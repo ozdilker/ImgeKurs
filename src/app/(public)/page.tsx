@@ -1,55 +1,28 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import { getCourses, getSiteSettings } from "@/lib/firebase/firestore";
+import { HeroSlider } from "@/components/home/HeroSlider";
+import { getCourses, getPageContent, getSiteSettings } from "@/lib/firebase/firestore";
+import { defaultHeroSlides } from "@/lib/pages";
 import type { Metadata } from "next";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "Anasayfa",
 };
 
 export default async function HomePage() {
-  const [settings, courses] = await Promise.all([
+  const [page, settings, courses] = await Promise.all([
+    getPageContent("anasayfa"),
     getSiteSettings(),
     getCourses(),
   ]);
 
+  const slides = page?.heroSlides?.length ? page.heroSlides : defaultHeroSlides;
   const featuredCourses = courses.filter((c) => c.status === "active").slice(0, 3);
 
   return (
     <>
-      {/* Hero */}
-      <section className="relative flex min-h-[70vh] items-center overflow-hidden bg-primary">
-        <Image
-          src={settings.heroImageUrl}
-          alt="Eğitim ortamı"
-          fill
-          className="object-cover opacity-30"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/80 to-primary/60" />
-        <div className="container-main relative z-10 py-20 text-center md:py-28">
-          <h1 className="mb-6 text-4xl font-bold leading-tight text-white md:text-5xl lg:text-6xl">
-            {settings.heroTitle}{" "}
-            <span className="text-gold">{settings.heroHighlight}</span>
-          </h1>
-          <p className="mx-auto mb-10 max-w-2xl text-lg text-white/80 md:text-xl">
-            {settings.heroSubtitle}
-          </p>
-          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Link href="/iletisim">
-              <Button variant="gold" size="lg">
-                Hemen Başvur
-              </Button>
-            </Link>
-            <Link href="/sayfa/hakkimizda">
-              <Button variant="ghost" size="lg">
-                Detaylı Bilgi
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+      <HeroSlider slides={slides} />
 
       {/* Programs */}
       <section className="section-padding bg-white">
@@ -114,6 +87,21 @@ export default async function HomePage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="bg-surface-gray py-12">
+        <div className="container-main flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <Link href="/iletisim">
+            <Button variant="gold" size="lg">
+              Hemen Başvur
+            </Button>
+          </Link>
+          <Link href="/sayfa/hakkimizda">
+            <Button variant="outline" size="lg">
+              Detaylı Bilgi
+            </Button>
+          </Link>
         </div>
       </section>
     </>

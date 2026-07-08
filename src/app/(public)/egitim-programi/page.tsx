@@ -2,8 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { Clock, Users } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { PageHero } from "@/components/layout/PageHero";
 import { PreRegistrationForm } from "@/components/forms/PreRegistrationForm";
-import { getCourses } from "@/lib/firebase/firestore";
+import { getCourses, getPageContent } from "@/lib/firebase/firestore";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -11,25 +12,23 @@ export const metadata: Metadata = {
 };
 
 export default async function ProgramsPage() {
-  const courses = await getCourses();
+  const [page, courses] = await Promise.all([
+    getPageContent("egitim-programi"),
+    getCourses(),
+  ]);
   const activeCourses = courses.filter((c) => c.status === "active");
   const featuredCourse = activeCourses.find((c) => c.slug === "tyt-ayt") ?? activeCourses[0];
 
   return (
     <>
-      <section className="section-padding bg-white pt-24">
-        <div className="container-main text-center">
-          <h1 className="mb-4 text-3xl font-bold text-primary md:text-5xl">
-            Eğitim Programlarımız
-          </h1>
-          <p className="mx-auto max-w-2xl text-slate-text">
-            Her seviyeye uygun özel müfredat ve birebir takip ile öğrenci
-            başarısını en üst düzeye çıkarıyoruz.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        page={page}
+        fallbackTitle="Eğitim Programlarımız"
+        fallbackSubtitle="Her seviyeye uygun özel müfredat ve birebir takip ile öğrenci başarısını en üst düzeye çıkarıyoruz."
+        dark={false}
+      />
 
-      <section className="pb-16">
+      <section className="pb-16 pt-8">
         <div className="container-main">
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {activeCourses.slice(0, 3).map((course) => (

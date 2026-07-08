@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { getGalleryItems } from "@/lib/firebase/firestore";
+import { PageHero } from "@/components/layout/PageHero";
+import { getGalleryItems, getPageContent } from "@/lib/firebase/firestore";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -7,23 +8,22 @@ export const metadata: Metadata = {
 };
 
 export default async function GalleryPage() {
-  const items = await getGalleryItems();
+  const [page, items] = await Promise.all([
+    getPageContent("galeri"),
+    getGalleryItems(),
+  ]);
   const categories = [...new Set(items.map((i) => i.category))];
 
   return (
     <>
-      <section className="section-padding bg-white pt-24">
-        <div className="container-main text-center">
-          <h1 className="heading-accent mb-4 text-3xl font-bold text-primary md:text-5xl">
-            Galeri
-          </h1>
-          <p className="text-slate-text">
-            Eğitim ortamımızdan ve etkinliklerimizden kareler
-          </p>
-        </div>
-      </section>
+      <PageHero
+        page={page}
+        fallbackTitle="Galeri"
+        fallbackSubtitle="Eğitim ortamımızdan ve etkinliklerimizden kareler"
+        dark={false}
+      />
 
-      <section className="pb-20">
+      <section className="pb-20 pt-8">
         <div className="container-main">
           <div className="mb-8 flex flex-wrap justify-center gap-2">
             {categories.map((cat) => (

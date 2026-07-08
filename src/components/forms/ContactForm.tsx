@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { submitRegistration } from "@/lib/firebase/firestore";
 import { ArrowRight, Clock, Mail, MapPin, Phone } from "lucide-react";
-import type { SiteSettings } from "@/lib/types";
+import type { PageContent, SiteSettings } from "@/lib/types";
 
 const grades = [
   "5. Sınıf",
@@ -18,7 +18,13 @@ const grades = [
   "Mezun",
 ];
 
-export function ContactForm({ settings }: { settings: SiteSettings }) {
+export function ContactForm({
+  settings,
+  page,
+}: {
+  settings: SiteSettings;
+  page?: PageContent | null;
+}) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -59,11 +65,11 @@ export function ContactForm({ settings }: { settings: SiteSettings }) {
       <div className="container-main">
         <div className="mb-12 text-center">
           <h1 className="mb-4 text-3xl font-bold text-primary md:text-5xl">
-            İletişim & Kayıt
+            {page?.heroTitle ?? "İletişim & Kayıt"}
           </h1>
           <p className="mx-auto max-w-2xl text-slate-text">
-            Eğitim yolculuğunuzda size eşlik etmek için buradayız. Sorularınız
-            veya kayıt işlemleri için bizimle iletişime geçin.
+            {page?.heroSubtitle ??
+              "Eğitim yolculuğunuzda size eşlik etmek için buradayız. Sorularınız veya kayıt işlemleri için bizimle iletişime geçin."}
           </p>
         </div>
 

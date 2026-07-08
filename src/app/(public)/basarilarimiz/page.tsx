@@ -9,7 +9,8 @@ import {
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { getSuccessStories } from "@/lib/firebase/firestore";
+import { PageHero } from "@/components/layout/PageHero";
+import { getPageContent, getSuccessStories } from "@/lib/firebase/firestore";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -19,7 +20,10 @@ export const metadata: Metadata = {
 const statIcons = [Trophy, GraduationCap, Users, Calendar];
 
 export default async function SuccessPage() {
-  const stories = await getSuccessStories();
+  const [page, stories] = await Promise.all([
+    getPageContent("basarilarimiz"),
+    getSuccessStories(),
+  ]);
 
   const quickStats = [
     { value: "500+", label: "İlk 1000 Derecesi" },
@@ -36,16 +40,11 @@ export default async function SuccessPage() {
 
   return (
     <>
-      <section className="bg-primary py-24 text-center">
-        <div className="container-main">
-          <h1 className="mb-4 text-3xl font-bold text-white md:text-5xl">
-            Başarı Yolculuğumuzda Sizinle Gurur Duyuyoruz
-          </h1>
-          <p className="text-white/70">
-            Her yıl artan başarı grafiklerimizle geleceği birlikte inşa ediyoruz.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        page={page}
+        fallbackTitle="Başarı Yolculuğumuzda Sizinle Gurur Duyuyoruz"
+        fallbackSubtitle="Her yıl artan başarı grafiklerimizle geleceği birlikte inşa ediyoruz."
+      />
 
       <section className="section-padding bg-white">
         <div className="container-main">

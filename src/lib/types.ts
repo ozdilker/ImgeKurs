@@ -45,6 +45,16 @@ export type VideoLesson = {
   order: number;
 };
 
+export type HeroSlide = {
+  id: string;
+  imageUrl: string;
+  title: string;
+  subtitle?: string;
+  link?: string;
+  order: number;
+  enabled: boolean;
+};
+
 export type PageContent = {
   id: string;
   slug: string;
@@ -52,6 +62,7 @@ export type PageContent = {
   heroTitle?: string;
   heroSubtitle?: string;
   heroImageUrl?: string;
+  heroSlides?: HeroSlide[];
   sections: PageSection[];
   updatedAt: string;
 };
@@ -84,6 +95,7 @@ export type SectionItem = {
 export type SiteSettings = {
   siteName: string;
   tagline: string;
+  logoUrl?: string;
   phone: string;
   phoneSecondary?: string;
   email: string;

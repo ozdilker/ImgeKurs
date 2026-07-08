@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AdminHeader } from "@/components/admin/AdminSidebar";
+import { ImageUploadField } from "@/components/admin/ImageUploadField";
 import { Button } from "@/components/ui/Button";
 import { getSiteSettings, saveSiteSettings } from "@/lib/firebase/firestore";
 import type { SiteSettings } from "@/lib/types";
@@ -53,6 +54,25 @@ export default function SettingsAdminPage() {
 
         <Field label="Site Adı" value={settings.siteName} onChange={(v) => update("siteName", v)} />
         <Field label="Slogan" value={settings.tagline} onChange={(v) => update("tagline", v)} />
+
+        <ImageUploadField
+          label="Site Logosu"
+          value={settings.logoUrl ?? ""}
+          onChange={(v) => update("logoUrl", v)}
+          hint="PNG veya SVG önerilir. Boş bırakılırsa site adı metin olarak gösterilir."
+          previewHeight={100}
+        />
+
+        {settings.logoUrl && (
+          <button
+            type="button"
+            onClick={() => update("logoUrl", "")}
+            className="text-sm text-red-600 hover:underline"
+          >
+            Logoyu kaldır (metin logosuna dön)
+          </button>
+        )}
+
         <Field label="Telefon" value={settings.phone} onChange={(v) => update("phone", v)} />
         <Field label="İkinci Telefon" value={settings.phoneSecondary ?? ""} onChange={(v) => update("phoneSecondary", v)} />
         <Field label="E-posta" value={settings.email} onChange={(v) => update("email", v)} />
