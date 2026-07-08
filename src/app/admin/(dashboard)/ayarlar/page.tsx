@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { revalidateSiteLayout } from "@/app/actions/revalidate";
 import { AdminHeader } from "@/components/admin/AdminSidebar";
 import { ImageUploadField } from "@/components/admin/ImageUploadField";
+import { MapEmbedField } from "@/components/admin/MapEmbedField";
 import { Button } from "@/components/ui/Button";
 import { getSiteSettings, saveSiteSettings } from "@/lib/firebase/firestore";
 import type { SiteSettings } from "@/lib/types";
@@ -83,6 +84,13 @@ export default function SettingsAdminPage() {
         <Field label="İkinci Telefon" value={settings.phoneSecondary ?? ""} onChange={(v) => update("phoneSecondary", v)} />
         <Field label="E-posta" value={settings.email} onChange={(v) => update("email", v)} />
         <Field label="Adres" value={settings.address} onChange={(v) => update("address", v)} />
+
+        <MapEmbedField
+          label="Google Maps Harita (Embed)"
+          value={settings.mapEmbedUrl ?? ""}
+          onChange={(v) => update("mapEmbedUrl", v)}
+        />
+
         <Field label="Çalışma Saatleri" value={settings.workingHours} onChange={(v) => update("workingHours", v)} />
         <Field label="Hafta Sonu" value={settings.workingHoursWeekend ?? ""} onChange={(v) => update("workingHoursWeekend", v)} />
         <Field label="Hero Başlık" value={settings.heroTitle} onChange={(v) => update("heroTitle", v)} />

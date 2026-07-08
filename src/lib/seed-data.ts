@@ -14,6 +14,8 @@ export const defaultSiteSettings: SiteSettings = {
   phoneSecondary: "+90 (532) 555 01 24",
   email: "bilgi@imgekurs.com.tr",
   address: "Bahçelievler Mah. Eğitim Cd. No:12 Bahçelievler / İstanbul",
+  mapEmbedUrl:
+    "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3010.2!2d28.859!3d41.008!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14caa7040068086b%3A0xbae1d9c239e88ca7!2zQmFow6xldmllbGVyLCBJc3RhbmJ1bA!5e0!3m2!1str!2str!4v1700000000000!5m2!1str!2str",
   workingHours: "Pzt - Cmt: 09:00 - 19:00",
   workingHoursWeekend: "Pazar: Kapalı",
   heroTitle: "Başarıya Giden",
