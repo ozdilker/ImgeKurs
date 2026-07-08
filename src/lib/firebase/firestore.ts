@@ -23,7 +23,7 @@ import type {
   SuccessStory,
   VideoLesson,
 } from "../types";
-import { defaultSiteSettings } from "../seed-data";
+import { defaultCourses, defaultSiteSettings } from "../seed-data";
 import { getDefaultPages } from "../pages";
 
 function db(): Firestore | null {
@@ -85,7 +85,16 @@ async function fetchOrdered<T>(
 }
 
 export async function getCourses(): Promise<Course[]> {
-  return fetchOrdered<Course>("courses", "order");
+  const firestore = db();
+  if (!firestore || !isFirebaseConfigured()) return defaultCourses;
+  try {
+    const q = query(collection(firestore, "courses"), orderBy("order", "asc"));
+    const snap = await getDocs(q);
+    if (snap.empty) return defaultCourses;
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Course));
+  } catch {
+    return defaultCourses;
+  }
 }
 
 export async function getCourseBySlug(slug: string): Promise<Course | null> {
