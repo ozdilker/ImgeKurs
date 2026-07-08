@@ -8,6 +8,7 @@ import {
   parseStudentExcel,
 } from "@/lib/excel-import";
 import { bulkSaveStudents } from "@/lib/firebase/firestore";
+import { revalidateGururPage } from "@/app/actions/revalidate";
 import type { ClassSection } from "@/lib/types";
 import { Download, FileSpreadsheet, Upload } from "lucide-react";
 
@@ -53,6 +54,7 @@ export function ExcelImportPanel({
       );
       const students = excelRowsToStudents(result.rows, classMap);
       await bulkSaveStudents(students);
+      await revalidateGururPage();
       setPendingBuffer(null);
       setPreviewCount(0);
       setErrors(result.errors);
@@ -123,7 +125,8 @@ export function ExcelImportPanel({
         <p className="font-semibold text-primary">Beklenen sütunlar</p>
         <p className="mt-1">
           Öğrenci Adı Soyadı, Veli Adı Soyadı, Veli Telefon, Sınıf Seviyesi (zorunlu) ·
-          Telefon, E-Posta, Okul, Sınıf Grubu, Notlar (opsiyonel)
+          Telefon, E-Posta, Okul, Sınıf Grubu, Notlar, Üniversite, Bölüm, Derece, Foto URL,
+          Gurur Tablosu (opsiyonel)
         </p>
       </div>
     </div>

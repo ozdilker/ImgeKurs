@@ -128,13 +128,13 @@ export default function AdminDashboard() {
             href="/admin/kurslar"
             className="text-sm font-medium text-primary hover:text-gold"
           >
-            Kurs Yönetimi →
+            Eğitim Programları →
           </Link>
         </div>
 
         {courses.length === 0 ? (
           <p className="py-8 text-center text-sm text-slate-text">
-            Henüz kurs eklenmemiş. Kurs Yönetimi sayfasından ekleyebilirsiniz.
+            Henüz program eklenmemiş. Eğitim Programları sayfasından ekleyebilirsiniz.
           </p>
         ) : (
           <div className="overflow-x-auto">

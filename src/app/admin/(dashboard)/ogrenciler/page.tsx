@@ -9,8 +9,10 @@ import {
   deleteStudent,
   getClassSections,
   getStudents,
+  republishStudentGururStories,
   saveStudent,
 } from "@/lib/firebase/firestore";
+import { revalidateGururPage } from "@/app/actions/revalidate";
 import { GRADE_LEVELS } from "@/lib/grades";
 import type { ClassSection, Student } from "@/lib/types";
 import { Plus, RefreshCw, Search, Trash2 } from "lucide-react";
@@ -26,6 +28,12 @@ const emptyForm = {
   parentEmail: "",
   school: "",
   notes: "",
+  university: "",
+  department: "",
+  rank: "",
+  imageUrl: "",
+  gururQuote: "",
+  showOnGururTable: false,
   classSectionId: "",
   status: "active" as Student["status"],
 };
@@ -57,6 +65,8 @@ export default function StudentsAdminPage() {
       ]);
       setStudents(studentData);
       setClassSections(sectionData);
+      await republishStudentGururStories();
+      await revalidateGururPage();
     } finally {
       setLoading(false);
     }
@@ -117,6 +127,12 @@ export default function StudentsAdminPage() {
       parentEmail: student.parentEmail ?? "",
       school: student.school ?? "",
       notes: student.notes ?? "",
+      university: student.university ?? "",
+      department: student.department ?? "",
+      rank: student.rank ?? "",
+      imageUrl: student.imageUrl ?? "",
+      gururQuote: student.gururQuote ?? "",
+      showOnGururTable: student.showOnGururTable ?? false,
       classSectionId: student.classSectionId ?? "",
       status: student.status,
     });
@@ -138,6 +154,12 @@ export default function StudentsAdminPage() {
       parentEmail: form.parentEmail || undefined,
       school: form.school || undefined,
       notes: form.notes || undefined,
+      university: form.university || undefined,
+      department: form.department || undefined,
+      rank: form.rank || undefined,
+      imageUrl: form.imageUrl || undefined,
+      gururQuote: form.gururQuote || undefined,
+      showOnGururTable: form.showOnGururTable,
       classSectionId: form.classSectionId || undefined,
       status: form.status,
       createdAt: existing?.createdAt ?? now,
@@ -147,6 +169,7 @@ export default function StudentsAdminPage() {
 
     try {
       await saveStudent(student);
+      await revalidateGururPage();
       setStudents((prev) => {
         if (editingId) {
           return prev.map((s) => (s.id === editingId ? student : s));
@@ -186,6 +209,7 @@ export default function StudentsAdminPage() {
     if (!confirm(`"${name}" öğrencisini silmek istediğinize emin misiniz?`)) return;
     try {
       await deleteStudent(id);
+      await revalidateGururPage();
       setStudents((prev) => prev.filter((s) => s.id !== id));
     } catch {
       alert("Öğrenci silinemedi.");
@@ -196,7 +220,7 @@ export default function StudentsAdminPage() {
     <>
       <AdminHeader
         title="Öğrenci Yönetimi"
-        subtitle="Öğrenci kayıtları, Excel içe aktarma ve sınıf atamaları."
+        subtitle="Öğrenci kayıtları, Excel içe aktarma ve sınıf atamaları. Gurur tablosunda gösterilecek öğrenciler için üniversite ve bölüm bilgisi girin."
       />
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -363,6 +387,55 @@ export default function StudentsAdminPage() {
               rows={2}
               className="rounded-lg border px-4 py-2 md:col-span-2 lg:col-span-3"
             />
+          </div>
+
+          <div className="rounded-xl border border-gold/30 bg-gold/5 p-4">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+              <h3 className="font-semibold text-primary">Gurur Tablosu</h3>
+              <label className="flex items-center gap-2 text-sm text-primary">
+                <input
+                  type="checkbox"
+                  checked={form.showOnGururTable}
+                  onChange={(e) =>
+                    setForm({ ...form, showOnGururTable: e.target.checked })
+                  }
+                  className="h-4 w-4 accent-gold"
+                />
+                Gurur tablosunda göster
+              </label>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <input
+                placeholder="Üniversite"
+                value={form.university}
+                onChange={(e) => setForm({ ...form, university: e.target.value })}
+                className="rounded-lg border px-4 py-2"
+              />
+              <input
+                placeholder="Bölüm"
+                value={form.department}
+                onChange={(e) => setForm({ ...form, department: e.target.value })}
+                className="rounded-lg border px-4 py-2"
+              />
+              <input
+                placeholder="Derece"
+                value={form.rank}
+                onChange={(e) => setForm({ ...form, rank: e.target.value })}
+                className="rounded-lg border px-4 py-2"
+              />
+              <input
+                placeholder="Foto URL"
+                value={form.imageUrl}
+                onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+                className="rounded-lg border px-4 py-2 md:col-span-2"
+              />
+              <input
+                placeholder="Alıntı / Yorum"
+                value={form.gururQuote}
+                onChange={(e) => setForm({ ...form, gururQuote: e.target.value })}
+                className="rounded-lg border px-4 py-2 md:col-span-2 lg:col-span-3"
+              />
+            </div>
           </div>
           <div className="flex gap-2">
             <Button type="submit">{editingId ? "Güncelle" : "Kaydet"}</Button>

@@ -8,6 +8,8 @@ export const metadata: Metadata = {
   title: "Eğitim Programları",
 };
 
+export const revalidate = 60;
+
 export default async function ProgramsPage() {
   const [page, courses] = await Promise.all([
     getPageContent("egitim-programi"),
@@ -28,7 +30,7 @@ export default async function ProgramsPage() {
       <section className="pb-16 pt-8">
         <div className="container-main">
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            <ProgramCourseGrid courses={activeCourses.slice(0, 3)} />
+            <ProgramCourseGrid courses={activeCourses} />
           </div>
         </div>
       </section>

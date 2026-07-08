@@ -11,6 +11,7 @@ import {
   getSuccessStories,
   saveSuccessStory,
 } from "@/lib/firebase/firestore";
+import { revalidateGururPage } from "@/app/actions/revalidate";
 import {
   resolveSuccessStoryImage,
   SUCCESS_STORY_PLACEHOLDER,
@@ -90,6 +91,7 @@ export default function SuccessAdminPage() {
 
     try {
       await saveSuccessStory(story);
+      await revalidateGururPage();
       setStories((prev) => {
         if (editingId) {
           return prev
@@ -108,6 +110,7 @@ export default function SuccessAdminPage() {
     if (!confirm(`"${name}" kaydını silmek istediğinize emin misiniz?`)) return;
     try {
       await deleteSuccessStory(id);
+      await revalidateGururPage();
       setStories((prev) => prev.filter((s) => s.id !== id));
       if (editingId === id) closeForm();
     } catch {

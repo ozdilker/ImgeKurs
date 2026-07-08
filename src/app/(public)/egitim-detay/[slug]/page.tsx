@@ -9,6 +9,8 @@ import type { Metadata } from "next";
 
 type Props = { params: Promise<{ slug: string }> };
 
+export const revalidate = 60;
+
 export async function generateStaticParams() {
   const courses = await getCourses();
   return courses.map((c) => ({ slug: c.slug }));

@@ -26,6 +26,11 @@ import type {
 import { defaultCourses, defaultSiteSettings } from "../seed-data";
 import { getDefaultPages } from "../pages";
 import { studentToFirestore } from "../student-firestore";
+import {
+  shouldShowStudentOnGururTable,
+  studentGururStoryId,
+  studentToGururStory,
+} from "../gurur-sync";
 
 function db(): Firestore | null {
   return getClientDb();
@@ -81,7 +86,21 @@ async function fetchOrdered<T>(
     const snap = await getDocs(q);
     return snap.docs.map((d) => ({ id: d.id, ...d.data() } as T));
   } catch {
-    return [];
+    try {
+      const snap = await getDocs(collection(firestore, collectionName));
+      return snap.docs
+        .map((d) => ({ id: d.id, ...d.data() } as T))
+        .sort((a, b) => {
+          const left = (a as Record<string, unknown>)[orderField];
+          const right = (b as Record<string, unknown>)[orderField];
+          if (typeof left === "number" && typeof right === "number") {
+            return left - right;
+          }
+          return String(left ?? "").localeCompare(String(right ?? ""), "tr");
+        });
+    } catch {
+      return [];
+    }
   }
 }
 
@@ -92,7 +111,14 @@ export async function getCourses(): Promise<Course[]> {
     const q = query(collection(firestore, "courses"), orderBy("order", "asc"));
     const snap = await getDocs(q);
     if (snap.empty) return defaultCourses;
-    return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Course));
+    return snap.docs.map((d) => {
+      const data = d.data();
+      return {
+        id: d.id,
+        ...data,
+        isVip: data.isVip === true,
+      } as Course;
+    });
   } catch {
     return defaultCourses;
   }
@@ -104,7 +130,20 @@ export async function getCourseBySlug(slug: string): Promise<Course | null> {
 }
 
 export async function saveCourse(course: Course): Promise<void> {
-  await setDoc(doc(requireDb(), "courses", course.id), course);
+  await setDoc(doc(requireDb(), "courses", course.id), {
+    ...course,
+    title: course.title.trim(),
+    slug: course.slug.trim(),
+    category: course.category.trim(),
+    description: course.description.trim(),
+    imageUrl: course.imageUrl.trim(),
+    schedule: course.schedule?.trim() || null,
+    classSize: course.classSize?.trim() || null,
+    tag: course.tag?.trim() || null,
+    isVip: course.isVip === true,
+    order: Number(course.order) || 1,
+    status: course.status,
+  });
 }
 
 export async function deleteCourse(id: string): Promise<void> {
@@ -117,6 +156,29 @@ export async function getSuccessStories(): Promise<SuccessStory[]> {
 
 export async function saveSuccessStory(story: SuccessStory): Promise<void> {
   await setDoc(doc(requireDb(), "successStories", story.id), story);
+}
+
+async function syncGururStoryForStudent(student: Student): Promise<void> {
+  const firestore = requireDb();
+  const storyId = studentGururStoryId(student.id);
+  const ref = doc(firestore, "successStories", storyId);
+
+  if (!shouldShowStudentOnGururTable(student)) {
+    await deleteDoc(ref).catch(() => undefined);
+    return;
+  }
+
+  const existingStories = await getSuccessStories();
+  const maxOrder = existingStories.reduce(
+    (max, story) => Math.max(max, story.order ?? 0),
+    0
+  );
+  const existing = existingStories.find((story) => story.id === storyId);
+
+  await setDoc(
+    ref,
+    studentToGururStory(student, existing?.order ?? maxOrder + 1)
+  );
 }
 
 export async function deleteSuccessStory(id: string): Promise<void> {
@@ -312,6 +374,12 @@ function normalizeStudent(data: Record<string, unknown>, id: string): Student {
     parentEmail: data.parentEmail ? String(data.parentEmail) : undefined,
     classSectionId: data.classSectionId ? String(data.classSectionId) : undefined,
     status: (data.status as Student["status"]) ?? "active",
+    university: data.university ? String(data.university) : undefined,
+    department: data.department ? String(data.department) : undefined,
+    rank: data.rank ? String(data.rank) : undefined,
+    imageUrl: data.imageUrl ? String(data.imageUrl) : undefined,
+    gururQuote: data.gururQuote ? String(data.gururQuote) : undefined,
+    showOnGururTable: data.showOnGururTable === true,
     registrationId: data.registrationId ? String(data.registrationId) : undefined,
     notes: data.notes ? String(data.notes) : undefined,
     createdAt: String(data.createdAt ?? new Date().toISOString()),
@@ -335,10 +403,14 @@ export async function getStudents(): Promise<Student[]> {
 export async function saveStudent(student: Student): Promise<void> {
   const now = new Date().toISOString();
   await setDoc(doc(requireDb(), "students", student.id), studentToFirestore(student, now));
+  await syncGururStoryForStudent(student);
 }
 
 export async function deleteStudent(id: string): Promise<void> {
   await deleteDoc(doc(requireDb(), "students", id));
+  await deleteDoc(doc(requireDb(), "successStories", studentGururStoryId(id))).catch(
+    () => undefined
+  );
 }
 
 export async function assignStudentToClass(
@@ -370,6 +442,10 @@ export async function bulkSaveStudents(students: Student[]): Promise<number> {
     });
 
     await batch.commit();
+  }
+
+  for (const student of students) {
+    await syncGururStoryForStudent(student);
   }
 
   return students.length;
@@ -431,6 +507,20 @@ export async function getStudentsByClassSection(
 ): Promise<Student[]> {
   const students = await getStudents();
   return students.filter((s) => s.classSectionId === classSectionId);
+}
+
+export async function republishStudentGururStories(): Promise<number> {
+  const students = await getStudents();
+  let count = 0;
+
+  for (const student of students) {
+    await syncGururStoryForStudent(student);
+    if (shouldShowStudentOnGururTable(student)) {
+      count += 1;
+    }
+  }
+
+  return count;
 }
 
 export async function uploadImagePlaceholder(file: File): Promise<string> {

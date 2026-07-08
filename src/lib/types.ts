@@ -139,6 +139,12 @@ export type Student = {
   parentEmail?: string;
   classSectionId?: string;
   status: "active" | "inactive" | "graduated" | "withdrawn";
+  university?: string;
+  department?: string;
+  rank?: string;
+  imageUrl?: string;
+  gururQuote?: string;
+  showOnGururTable?: boolean;
   registrationId?: string;
   notes?: string;
   createdAt: string;

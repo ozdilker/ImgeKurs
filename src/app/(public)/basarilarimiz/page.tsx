@@ -16,6 +16,8 @@ export const metadata: Metadata = {
   title: "Başarılarımız",
 };
 
+export const revalidate = 60;
+
 const statIcons = [Trophy, GraduationCap, Users, Calendar];
 
 export default async function SuccessPage() {

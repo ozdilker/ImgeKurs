@@ -8,6 +8,7 @@ import {
   parseSuccessStoryExcel,
 } from "@/lib/success-excel-import";
 import { bulkSaveSuccessStories } from "@/lib/firebase/firestore";
+import { revalidateGururPage } from "@/app/actions/revalidate";
 import { Download, FileSpreadsheet, Upload } from "lucide-react";
 
 type SuccessExcelImportPanelProps = {
@@ -49,6 +50,7 @@ export function SuccessExcelImportPanel({
 
       const stories = excelRowsToSuccessStories(result.rows, currentCount);
       await bulkSaveSuccessStories(stories);
+      await revalidateGururPage();
       setPendingBuffer(null);
       setPreviewCount(0);
       setErrors(result.errors);

@@ -13,6 +13,12 @@ export type ExcelImportRow = {
   school?: string;
   classSectionName?: string;
   notes?: string;
+  university?: string;
+  department?: string;
+  rank?: string;
+  imageUrl?: string;
+  gururQuote?: string;
+  showOnGururTable?: boolean;
 };
 
 export type ExcelImportResult = {
@@ -77,6 +83,30 @@ const COLUMN_ALIASES: Record<keyof ExcelImportRow, string[]> = {
     "vip sinif",
   ],
   notes: ["not", "notlar", "aciklama", "notes", "ek not"],
+  university: ["universite", "university", "yerlestigi universite"],
+  department: ["bolum", "department", "program", "fakulte"],
+  rank: ["derece", "basari", "siralama", "rank", "sonuc"],
+  imageUrl: [
+    "foto",
+    "fotograf",
+    "foto url",
+    "foto link",
+    "gorunt url",
+    "gorsel url",
+    "gorsel",
+    "image",
+    "imageurl",
+    "resim",
+    "resim url",
+  ],
+  gururQuote: ["alinti", "yorum", "quote", "soz"],
+  showOnGururTable: [
+    "gurur tablosu",
+    "gurur tablosunda goster",
+    "gurur",
+    "basari tablosu",
+    "show on gurur",
+  ],
 };
 
 function normalizeHeader(value: unknown): string {
@@ -136,6 +166,18 @@ function cellValue(row: unknown[], index: number | undefined): string {
     return formatPhoneValue(value);
   }
   return String(value).trim();
+}
+
+function parseBooleanCell(value: string): boolean | undefined {
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) return undefined;
+  if (["evet", "yes", "true", "1", "x", "goster", "aktif"].includes(normalized)) {
+    return true;
+  }
+  if (["hayir", "no", "false", "0"].includes(normalized)) {
+    return false;
+  }
+  return undefined;
 }
 
 function findHeaderRow(rawRows: unknown[][]): {
@@ -219,6 +261,12 @@ export function parseStudentExcel(buffer: ArrayBuffer): ExcelImportResult {
       school: cellValue(cells, mapping.school) || undefined,
       classSectionName: cellValue(cells, mapping.classSectionName) || undefined,
       notes: cellValue(cells, mapping.notes) || undefined,
+      university: cellValue(cells, mapping.university) || undefined,
+      department: cellValue(cells, mapping.department) || undefined,
+      rank: cellValue(cells, mapping.rank) || undefined,
+      imageUrl: cellValue(cells, mapping.imageUrl) || undefined,
+      gururQuote: cellValue(cells, mapping.gururQuote) || undefined,
+      showOnGururTable: parseBooleanCell(cellValue(cells, mapping.showOnGururTable)),
     });
   });
 
@@ -239,6 +287,10 @@ export function excelRowsToStudents(
   return rows.map((row, index) => {
     const classKey = row.classSectionName?.trim().toLowerCase();
     const classSectionId = classKey ? classSectionMap.get(classKey) : undefined;
+    const university = row.university?.trim();
+    const department = row.department?.trim();
+    const showOnGururTable =
+      row.showOnGururTable ?? Boolean(university && department);
 
     return {
       id: `student-${baseId}-${index}-${Math.random().toString(36).slice(2, 7)}`,
@@ -253,6 +305,12 @@ export function excelRowsToStudents(
       classSectionId,
       status: "active" as const,
       notes: row.notes,
+      university,
+      department,
+      rank: row.rank?.trim() || undefined,
+      imageUrl: row.imageUrl?.trim() || undefined,
+      gururQuote: row.gururQuote?.trim() || undefined,
+      showOnGururTable,
       createdAt: now,
       updatedAt: now,
     };
@@ -270,6 +328,11 @@ export function downloadStudentTemplate(): void {
     "Okul",
     "Sınıf Grubu",
     "Notlar",
+    "Üniversite",
+    "Bölüm",
+    "Derece",
+    "Foto URL",
+    "Gurur Tablosu",
   ];
   const example = [
     "Ahmet Yılmaz",
@@ -281,6 +344,11 @@ export function downloadStudentTemplate(): void {
     "Örnek Ortaokulu",
     "8. Sınıf VIP-A",
     "",
+    "Boğaziçi Üniversitesi",
+    "Bilgisayar Mühendisliği",
+    "İlk 1000",
+    "",
+    "Evet",
   ];
 
   const sheet = XLSX.utils.aoa_to_sheet([headers, example]);

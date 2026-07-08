@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { ChevronDown, Menu, X } from "lucide-react";
-import { mainNav } from "@/lib/seed-data";
+import { buildMainNav } from "@/lib/courses";
 import type { SiteSettings } from "@/lib/types";
 import { SiteLogo } from "@/components/layout/SiteLogo";
 import { cn } from "@/lib/utils";
@@ -12,14 +12,16 @@ import { Button } from "@/components/ui/Button";
 
 type HeaderProps = {
   settings: Pick<SiteSettings, "siteName" | "logoUrl">;
+  courseMenuItems: { label: string; href: string }[];
 };
 
-export function Header({ settings }: HeaderProps) {
+export function Header({ settings, courseMenuItems }: HeaderProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const navItems = buildMainNav(courseMenuItems);
 
-  const isNavItemActive = (item: (typeof mainNav)[number]) => {
+  const isNavItemActive = (item: (typeof navItems)[number]) => {
     if (item.href === "/") return pathname === "/";
     if (item.href === "#") return false;
 
@@ -48,7 +50,7 @@ export function Header({ settings }: HeaderProps) {
         <SiteLogo settings={settings} variant="header" />
 
         <nav className="hidden items-center gap-1 lg:flex">
-          {mainNav.map((item) =>
+          {navItems.map((item) =>
             item.children ? (
               <div
                 key={item.label}
@@ -115,7 +117,7 @@ export function Header({ settings }: HeaderProps) {
 
       {mobileOpen && (
         <div className="border-t border-outline/10 bg-white px-4 py-4 lg:hidden">
-          {mainNav.map((item) => (
+          {navItems.map((item) => (
             <div key={item.label} className="border-b border-outline/5 py-2">
               {item.children ? (
                 <>
