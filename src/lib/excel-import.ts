@@ -1,5 +1,6 @@
 import * as XLSX from "xlsx";
 import type { Student } from "./types";
+import { formatPhoneValue } from "./student-firestore";
 
 export type ExcelImportRow = {
   fullName: string;
@@ -22,6 +23,7 @@ export type ExcelImportResult = {
 const COLUMN_ALIASES: Record<keyof ExcelImportRow, string[]> = {
   fullName: [
     "ogrenci adi soyadi",
+    "ogrenci ad soyadi",
     "ogrenci adi",
     "ad soyad",
     "adsoyad",
@@ -30,39 +32,56 @@ const COLUMN_ALIASES: Record<keyof ExcelImportRow, string[]> = {
     "fullname",
     "isim",
   ],
-  parentName: ["veli adi soyadi", "veli adi", "veli", "parent name", "parentname"],
+  parentName: [
+    "veli adi soyadi",
+    "veli ad soyadi",
+    "veli adi",
+    "veli ad soyad",
+    "parent name",
+    "parentname",
+  ],
   parentPhone: [
     "veli telefon",
     "veli tel",
     "veli telefonu",
+    "veli cep",
     "parent phone",
     "parentphone",
   ],
   gradeLevel: [
     "sinif seviyesi",
-    "sinif",
     "sinif duzeyi",
-    "grade",
+    "sinif seviye",
+    "grade level",
     "gradelevel",
     "seviye",
   ],
-  phone: ["telefon", "ogrenci telefon", "tel", "phone"],
-  email: ["e-posta", "eposta", "email", "mail"],
-  parentEmail: ["veli e-posta", "veli eposta", "veli email", "parent email"],
-  school: ["okul", "okudugu okul", "school"],
+  phone: ["ogrenci telefon", "ogrenci tel", "telefon", "tel", "phone", "cep"],
+  email: ["e posta", "e-posta", "eposta", "email", "mail", "ogrenci e posta"],
+  parentEmail: [
+    "veli e posta",
+    "veli e-posta",
+    "veli eposta",
+    "veli email",
+    "parent email",
+  ],
+  school: ["okul", "okudugu okul", "school", "ogrenci okulu"],
   classSectionName: [
     "sinif grubu",
+    "sinif group",
     "grup",
-    "class",
+    "class section",
     "classsection",
     "sinif adi",
     "atama sinifi",
+    "vip sinif",
   ],
-  notes: ["not", "notlar", "aciklama", "notes"],
+  notes: ["not", "notlar", "aciklama", "notes", "ek not"],
 };
 
 function normalizeHeader(value: unknown): string {
   return String(value ?? "")
+    .replace(/^\uFEFF/, "")
     .trim()
     .toLowerCase()
     .normalize("NFD")
@@ -75,14 +94,31 @@ function normalizeHeader(value: unknown): string {
 
 function mapHeaders(headers: unknown[]): Partial<Record<keyof ExcelImportRow, number>> {
   const mapping: Partial<Record<keyof ExcelImportRow, number>> = {};
+  const normalizedHeaders = headers.map((header) => normalizeHeader(header));
 
-  headers.forEach((header, index) => {
-    const normalized = normalizeHeader(header);
+  const fields = Object.keys(COLUMN_ALIASES) as (keyof ExcelImportRow)[];
+
+  // 1) Tam eşleşme
+  normalizedHeaders.forEach((normalized, index) => {
     if (!normalized) return;
-
-    (Object.keys(COLUMN_ALIASES) as (keyof ExcelImportRow)[]).forEach((field) => {
+    fields.forEach((field) => {
       if (mapping[field] !== undefined) return;
-      if (COLUMN_ALIASES[field].some((alias) => normalized === alias || normalized.includes(alias))) {
+      if (COLUMN_ALIASES[field].some((alias) => normalized === alias)) {
+        mapping[field] = index;
+      }
+    });
+  });
+
+  // 2) Kısmi eşleşme (henüz eşleşmemiş alanlar)
+  normalizedHeaders.forEach((normalized, index) => {
+    if (!normalized) return;
+    fields.forEach((field) => {
+      if (mapping[field] !== undefined) return;
+      if (
+        COLUMN_ALIASES[field].some(
+          (alias) => normalized.includes(alias) || alias.includes(normalized)
+        )
+      ) {
         mapping[field] = index;
       }
     });
@@ -95,11 +131,34 @@ function cellValue(row: unknown[], index: number | undefined): string {
   if (index === undefined) return "";
   const value = row[index];
   if (value === null || value === undefined) return "";
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) return "";
+    return formatPhoneValue(value);
+  }
   return String(value).trim();
 }
 
+function findHeaderRow(rawRows: unknown[][]): {
+  headerIndex: number;
+  mapping: Partial<Record<keyof ExcelImportRow, number>>;
+} | null {
+  for (let i = 0; i < Math.min(rawRows.length, 10); i++) {
+    const row = rawRows[i] as unknown[];
+    const mapping = mapHeaders(row);
+    if (
+      mapping.fullName !== undefined &&
+      mapping.parentName !== undefined &&
+      mapping.parentPhone !== undefined &&
+      mapping.gradeLevel !== undefined
+    ) {
+      return { headerIndex: i, mapping };
+    }
+  }
+  return null;
+}
+
 export function parseStudentExcel(buffer: ArrayBuffer): ExcelImportResult {
-  const workbook = XLSX.read(buffer, { type: "array" });
+  const workbook = XLSX.read(buffer, { type: "array", cellDates: false });
   const sheetName = workbook.SheetNames[0];
   if (!sheetName) {
     return { rows: [], errors: ["Excel dosyasında sayfa bulunamadı."] };
@@ -109,7 +168,8 @@ export function parseStudentExcel(buffer: ArrayBuffer): ExcelImportResult {
   const rawRows = XLSX.utils.sheet_to_json<unknown[]>(sheet, {
     header: 1,
     defval: "",
-  });
+    raw: false,
+  }) as unknown[][];
 
   if (rawRows.length < 2) {
     return {
@@ -118,30 +178,22 @@ export function parseStudentExcel(buffer: ArrayBuffer): ExcelImportResult {
     };
   }
 
-  const headerRow = rawRows[0] as unknown[];
-  const mapping = mapHeaders(headerRow);
+  const headerInfo = findHeaderRow(rawRows);
   const errors: string[] = [];
 
-  if (mapping.fullName === undefined) {
-    errors.push("Zorunlu sütun bulunamadı: Öğrenci Adı Soyadı");
-  }
-  if (mapping.parentName === undefined) {
-    errors.push("Zorunlu sütun bulunamadı: Veli Adı");
-  }
-  if (mapping.parentPhone === undefined) {
-    errors.push("Zorunlu sütun bulunamadı: Veli Telefon");
-  }
-  if (mapping.gradeLevel === undefined) {
-    errors.push("Zorunlu sütun bulunamadı: Sınıf Seviyesi");
+  if (!headerInfo) {
+    return {
+      rows: [],
+      errors: [
+        "Zorunlu sütunlar bulunamadı. Beklenen: Öğrenci Adı Soyadı, Veli Adı Soyadı, Veli Telefon, Sınıf Seviyesi",
+      ],
+    };
   }
 
-  if (errors.length > 0) {
-    return { rows: [], errors };
-  }
-
+  const { headerIndex, mapping } = headerInfo;
   const rows: ExcelImportRow[] = [];
 
-  rawRows.slice(1).forEach((row, index) => {
+  rawRows.slice(headerIndex + 1).forEach((row, index) => {
     const cells = row as unknown[];
     const fullName = cellValue(cells, mapping.fullName);
     const parentName = cellValue(cells, mapping.parentName);
@@ -150,8 +202,9 @@ export function parseStudentExcel(buffer: ArrayBuffer): ExcelImportResult {
 
     if (!fullName && !parentName && !parentPhone && !gradeLevel) return;
 
+    const rowNumber = headerIndex + index + 2;
     if (!fullName || !parentName || !parentPhone || !gradeLevel) {
-      errors.push(`Satır ${index + 2}: zorunlu alanlar eksik.`);
+      errors.push(`Satır ${rowNumber}: zorunlu alanlar eksik.`);
       return;
     }
 
@@ -181,13 +234,14 @@ export function excelRowsToStudents(
   classSectionMap: Map<string, string>
 ): Student[] {
   const now = new Date().toISOString();
+  const baseId = Date.now();
 
   return rows.map((row, index) => {
     const classKey = row.classSectionName?.trim().toLowerCase();
     const classSectionId = classKey ? classSectionMap.get(classKey) : undefined;
 
     return {
-      id: `student-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 7)}`,
+      id: `student-${baseId}-${index}-${Math.random().toString(36).slice(2, 7)}`,
       fullName: row.fullName,
       gradeLevel: row.gradeLevel,
       school: row.school,

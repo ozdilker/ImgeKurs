@@ -25,6 +25,7 @@ import type {
 } from "../types";
 import { defaultCourses, defaultSiteSettings } from "../seed-data";
 import { getDefaultPages } from "../pages";
+import { studentToFirestore } from "../student-firestore";
 
 function db(): Firestore | null {
   return getClientDb();
@@ -322,9 +323,10 @@ export async function getStudents(): Promise<Student[]> {
   const firestore = db();
   if (!firestore || !isFirebaseConfigured()) return [];
   try {
-    const q = query(collection(firestore, "students"), orderBy("fullName", "asc"));
-    const snap = await getDocs(q);
-    return snap.docs.map((d) => normalizeStudent(d.data(), d.id));
+    const snap = await getDocs(collection(firestore, "students"));
+    return snap.docs
+      .map((d) => normalizeStudent(d.data(), d.id))
+      .sort((a, b) => a.fullName.localeCompare(b.fullName, "tr"));
   } catch {
     return [];
   }
@@ -332,16 +334,7 @@ export async function getStudents(): Promise<Student[]> {
 
 export async function saveStudent(student: Student): Promise<void> {
   const now = new Date().toISOString();
-  const payload = {
-    ...student,
-    fullName: student.fullName.trim(),
-    gradeLevel: student.gradeLevel.trim(),
-    parentName: student.parentName.trim(),
-    parentPhone: student.parentPhone.trim(),
-    updatedAt: now,
-    createdAt: student.createdAt || now,
-  };
-  await setDoc(doc(requireDb(), "students", student.id), payload);
+  await setDoc(doc(requireDb(), "students", student.id), studentToFirestore(student, now));
 }
 
 export async function deleteStudent(id: string): Promise<void> {
@@ -373,15 +366,7 @@ export async function bulkSaveStudents(students: Student[]): Promise<number> {
 
     chunk.forEach((student) => {
       const ref = doc(firestore, "students", student.id);
-      batch.set(ref, {
-        ...student,
-        fullName: student.fullName.trim(),
-        gradeLevel: student.gradeLevel.trim(),
-        parentName: student.parentName.trim(),
-        parentPhone: student.parentPhone.trim(),
-        createdAt: student.createdAt || now,
-        updatedAt: now,
-      });
+      batch.set(ref, studentToFirestore(student, now));
     });
 
     await batch.commit();

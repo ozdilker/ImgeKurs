@@ -58,8 +58,13 @@ export function ExcelImportPanel({
       setErrors(result.errors);
       onImported();
       alert(`${students.length} öğrenci başarıyla içe aktarıldı.`);
-    } catch {
-      alert("Excel içe aktarma başarısız.");
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Excel içe aktarma başarısız.";
+      alert(message);
+      setErrors((prev) => [...prev, message]);
     } finally {
       setImporting(false);
     }
