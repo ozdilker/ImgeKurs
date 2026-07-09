@@ -158,6 +158,7 @@ export default function RegistrationsAdminPage() {
           ).map((filter) => (
             <button
               key={filter.key}
+              type="button"
               onClick={() => setStatusFilter(filter.key)}
               className={cn(
                 "rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
@@ -172,6 +173,7 @@ export default function RegistrationsAdminPage() {
         </div>
 
         <button
+          type="button"
           onClick={loadRegistrations}
           disabled={loading}
           className="flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-primary shadow-card hover:bg-surface-gray disabled:opacity-50"
@@ -247,6 +249,7 @@ export default function RegistrationsAdminPage() {
                   <div className="flex items-center gap-2">
                     {!reg.convertedStudentId && (
                       <button
+                        type="button"
                         onClick={() => handleConvert(reg)}
                         disabled={convertingId === reg.id}
                         className="flex items-center gap-1 rounded-lg bg-gold/20 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-gold/30 disabled:opacity-50"
@@ -277,6 +280,7 @@ export default function RegistrationsAdminPage() {
                     </select>
 
                     <button
+                      type="button"
                       onClick={() => setExpandedId(expanded ? null : reg.id)}
                       className="rounded-lg p-2 text-slate-text hover:bg-surface-gray hover:text-primary"
                     >
@@ -288,6 +292,7 @@ export default function RegistrationsAdminPage() {
                     </button>
 
                     <button
+                      type="button"
                       onClick={() => handleDelete(reg.id, reg.studentName)}
                       className="rounded-lg p-2 text-slate-text hover:bg-red-50 hover:text-red-600"
                     >

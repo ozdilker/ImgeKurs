@@ -50,7 +50,7 @@ export default function CoursesAdminPage() {
 
       <div className="mb-6 flex justify-end">
         <Link href="/admin/kurslar/yeni">
-          <Button size="sm">
+          <Button type="button" size="sm">
             <Plus className="h-4 w-4" /> Yeni Program Ekle
           </Button>
         </Link>

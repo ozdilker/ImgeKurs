@@ -47,7 +47,11 @@ export function HakkimizdaSectionEditor({
             type="button"
             size="sm"
             disabled={savingSectionId === "hero"}
-            onClick={onSaveHero}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              void onSaveHero();
+            }}
           >
             {savingSectionId === "hero" ? "Kaydediliyor..." : "Bu Bölümü Kaydet"}
           </Button>
@@ -80,7 +84,11 @@ export function HakkimizdaSectionEditor({
                 type="button"
                 size="sm"
                 disabled={savingSectionId === section.id}
-                onClick={() => onSaveSection(index)}
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  void onSaveSection(index);
+                }}
               >
                 {savingSectionId === section.id ? "Kaydediliyor..." : "Bu Bölümü Kaydet"}
               </Button>

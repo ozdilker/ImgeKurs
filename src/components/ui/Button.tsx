@@ -27,9 +27,10 @@ const sizes = {
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "primary", size = "md", children, ...props }, ref) => (
+  ({ className, variant = "primary", size = "md", type = "button", children, ...props }, ref) => (
     <button
       ref={ref}
+      type={type}
       className={cn(
         "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none",
         variants[variant],

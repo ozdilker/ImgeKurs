@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { revalidateHakkimizdaPage, revalidateSiteLayout } from "@/app/actions/revalidate";
 import { AdminHeader } from "@/components/admin/AdminSidebar";
@@ -22,6 +22,11 @@ export default function PagesAdminPage() {
   const [page, setPage] = useState<PageContent | null>(null);
   const [saving, setSaving] = useState(false);
   const [savingSectionId, setSavingSectionId] = useState<string | null>(null);
+  const pageRef = useRef<PageContent | null>(null);
+
+  useEffect(() => {
+    pageRef.current = page;
+  }, [page]);
 
   useEffect(() => {
     getPageContent(selectedSlug).then((data) => {
@@ -43,30 +48,31 @@ export default function PagesAdminPage() {
         await revalidateSiteLayout();
       }
       alert(sectionId ? "Bölüm kaydedildi." : "Sayfa kaydedildi.");
-    } catch {
-      alert("Kaydetme başarısız. Firebase bağlantısını kontrol edin.");
+    } catch (error) {
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Kaydetme başarısız. Firebase bağlantısını kontrol edin."
+      );
     } finally {
       setSaving(false);
       setSavingSectionId(null);
     }
   }
 
-  async function handleSave(e: React.FormEvent) {
-    e.preventDefault();
-    if (!page) return;
-    await persistPage(page);
-  }
 
   async function handleSaveHero() {
-    if (!page) return;
-    await persistPage(page, "hero");
+    const currentPage = pageRef.current;
+    if (!currentPage) return;
+    await persistPage(currentPage, "hero");
   }
 
   async function handleSaveSection(sectionIndex: number) {
-    if (!page) return;
-    const section = page.sections[sectionIndex];
+    const currentPage = pageRef.current;
+    if (!currentPage) return;
+    const section = currentPage.sections[sectionIndex];
     if (!section) return;
-    await persistPage(page, section.id);
+    await persistPage(currentPage, section.id);
   }
 
   function updateSlide(index: number, field: keyof HeroSlide, value: string | boolean | number) {
@@ -149,7 +155,7 @@ export default function PagesAdminPage() {
         ))}
       </div>
 
-      <form onSubmit={handleSave} className="space-y-6">
+      <div className="space-y-6">
         {isHomePage && (
           <div className="rounded-2xl bg-white p-8 shadow-card">
             <div className="mb-6 flex items-center justify-between">
@@ -359,10 +365,17 @@ export default function PagesAdminPage() {
           </>
         )}
 
-        <Button type="submit" disabled={saving}>
+        <Button
+          type="button"
+          disabled={saving}
+          onClick={() => {
+            if (!page) return;
+            void persistPage(page);
+          }}
+        >
           {saving ? "Kaydediliyor..." : "Tüm Sayfayı Kaydet"}
         </Button>
-      </form>
+      </div>
     </>
   );
 }

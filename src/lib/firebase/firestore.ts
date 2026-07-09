@@ -33,6 +33,7 @@ import {
   studentGururStoryId,
   studentToGururStory,
 } from "../gurur-sync";
+import { sanitizeForFirestore } from "../firestore-utils";
 
 function db(): Firestore | null {
   return getClientDb();
@@ -71,7 +72,11 @@ export async function saveSiteSettings(settings: SiteSettings): Promise<void> {
     payload.logoUrl = undefined;
   }
 
-  await setDoc(doc(firestore, "settings", "site"), payload, { merge: true });
+  await setDoc(
+    doc(firestore, "settings", "site"),
+    sanitizeForFirestore(payload),
+    { merge: true }
+  );
 }
 
 async function fetchOrdered<T>(
@@ -177,20 +182,23 @@ export async function getCourseBySlug(slug: string): Promise<Course | null> {
 }
 
 export async function saveCourse(course: Course): Promise<void> {
-  await setDoc(doc(requireDb(), "courses", course.id), {
-    ...course,
-    title: course.title.trim(),
-    slug: course.slug.trim(),
-    category: course.category.trim(),
-    description: course.description.trim(),
-    imageUrl: course.imageUrl.trim(),
-    schedule: course.schedule?.trim() || null,
-    classSize: course.classSize?.trim() || null,
-    tag: course.tag?.trim() || null,
-    isVip: course.isVip === true,
-    order: Number(course.order) || 1,
-    status: course.status,
-  });
+  await setDoc(
+    doc(requireDb(), "courses", course.id),
+    sanitizeForFirestore({
+      ...course,
+      title: course.title.trim(),
+      slug: course.slug.trim(),
+      category: course.category.trim(),
+      description: course.description.trim(),
+      imageUrl: course.imageUrl.trim(),
+      schedule: course.schedule?.trim() || null,
+      classSize: course.classSize?.trim() || null,
+      tag: course.tag?.trim() || null,
+      isVip: course.isVip === true,
+      order: Number(course.order) || 1,
+      status: course.status,
+    })
+  );
 }
 
 export async function deleteCourse(id: string): Promise<void> {
@@ -263,13 +271,16 @@ export async function getGalleryItems(): Promise<GalleryItem[]> {
 }
 
 export async function saveGalleryItem(item: GalleryItem): Promise<void> {
-  await setDoc(doc(requireDb(), "gallery", item.id), {
-    ...item,
-    title: item.title.trim(),
-    imageUrl: item.imageUrl.trim(),
-    category: item.category.trim() || "Genel",
-    order: Number(item.order) || 1,
-  });
+  await setDoc(
+    doc(requireDb(), "gallery", item.id),
+    sanitizeForFirestore({
+      ...item,
+      title: item.title.trim(),
+      imageUrl: item.imageUrl.trim(),
+      category: item.category.trim() || "Genel",
+      order: Number(item.order) || 1,
+    })
+  );
 }
 
 export async function deleteGalleryItem(id: string): Promise<void> {
@@ -355,11 +366,13 @@ export async function getAllPages(): Promise<PageContent[]> {
 }
 
 export async function savePageContent(page: PageContent): Promise<void> {
-  await setDoc(
-    doc(requireDb(), "pages", page.slug),
-    { ...page, updatedAt: new Date().toISOString() },
-    { merge: true }
-  );
+  const payload = sanitizeForFirestore({
+    ...page,
+    id: page.id || page.slug,
+    updatedAt: new Date().toISOString(),
+  });
+
+  await setDoc(doc(requireDb(), "pages", page.slug), payload, { merge: true });
 }
 
 export async function submitRegistration(
@@ -551,7 +564,10 @@ export async function getClassSections(): Promise<ClassSection[]> {
 }
 
 export async function saveClassSection(section: ClassSection): Promise<void> {
-  await setDoc(doc(requireDb(), "classSections", section.id), section);
+  await setDoc(
+    doc(requireDb(), "classSections", section.id),
+    sanitizeForFirestore(section)
+  );
 }
 
 export async function deleteClassSection(id: string): Promise<void> {
