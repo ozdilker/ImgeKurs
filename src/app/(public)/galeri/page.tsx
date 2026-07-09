@@ -1,5 +1,4 @@
 import { PageHero } from "@/components/layout/PageHero";
-import { AnimatedSection } from "@/components/ui/AnimatedSection";
 import { GalleryGrid } from "@/components/gallery/GalleryGrid";
 import { getGalleryItems, getPageContent } from "@/lib/firebase/firestore";
 import type { Metadata } from "next";
@@ -28,9 +27,7 @@ export default async function GalleryPage() {
 
       <section className="pb-20 pt-8">
         <div className="container-main">
-          <AnimatedSection>
-            <GalleryGrid items={items} categories={categories} />
-          </AnimatedSection>
+          <GalleryGrid items={items} categories={categories} />
         </div>
       </section>
     </>

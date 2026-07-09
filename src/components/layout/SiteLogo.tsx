@@ -20,18 +20,20 @@ export function SiteLogo({
     <img
       src={logoUrl}
       alt={settings.siteName}
-      className={`h-auto w-auto object-contain ${isFooter ? "max-h-12" : "max-h-10 md:max-h-12"}`}
+      className={`h-auto w-auto object-contain ${
+        isFooter ? "max-h-14 md:max-h-16" : "max-h-12 sm:max-h-14 md:max-h-16 lg:max-h-[4.5rem]"
+      }`}
     />
   ) : (
     <span className="flex items-center gap-1">
       <span
-        className={`font-bold tracking-tight ${isFooter ? "text-2xl text-white" : "text-xl text-primary md:text-2xl"}`}
+        className={`font-bold tracking-tight ${isFooter ? "text-2xl text-white md:text-3xl" : "text-2xl text-primary md:text-3xl"}`}
       >
         {settings.siteName.split(" ")[0] ?? "İMGE"}
       </span>
       {settings.siteName.includes(" ") && (
         <span
-          className={`font-bold text-gold ${isFooter ? "text-2xl" : "text-xl md:text-2xl"}`}
+          className={`font-bold text-gold ${isFooter ? "text-2xl md:text-3xl" : "text-2xl md:text-3xl"}`}
         >
           {settings.siteName.split(" ").slice(1).join(" ")}
         </span>
