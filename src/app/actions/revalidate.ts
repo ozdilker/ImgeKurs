@@ -13,6 +13,7 @@ export async function revalidateGururPage() {
 export async function revalidateProgramPages() {
   revalidatePath("/", "layout");
   revalidatePath("/");
+  revalidatePath("/egitimlerimiz");
   revalidatePath("/egitim-programi");
   revalidatePath("/egitim-detay", "layout");
 }

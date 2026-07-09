@@ -119,7 +119,7 @@ export default async function CourseDetailPage({ params }: Props) {
               </div>
             )}
 
-            <Link href="/egitim-programi" className="mt-8 inline-block">
+            <Link href="/egitimlerimiz" className="mt-8 inline-block">
               <Button variant="outline" size="sm">
                 ← Tüm Programlar
               </Button>

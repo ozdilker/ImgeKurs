@@ -25,10 +25,6 @@ export function Header({ settings, courseMenuItems }: HeaderProps) {
     if (item.href === "/") return pathname === "/";
     if (item.href === "#") return false;
 
-    if (item.label === "Eğitim Programı") {
-      return pathname === "/egitim-programi";
-    }
-
     if (item.children?.length) {
       const childActive = item.children.some(
         (child) =>
@@ -37,7 +33,10 @@ export function Header({ settings, courseMenuItems }: HeaderProps) {
       if (childActive) return true;
 
       if (item.label === "Eğitimlerimiz") {
-        return pathname.startsWith("/egitim-detay");
+        return (
+          pathname === "/egitimlerimiz" ||
+          pathname.startsWith("/egitim-detay")
+        );
       }
     }
 
@@ -58,7 +57,8 @@ export function Header({ settings, courseMenuItems }: HeaderProps) {
                 onMouseEnter={() => setOpenDropdown(item.label)}
                 onMouseLeave={() => setOpenDropdown(null)}
               >
-                <button
+                <Link
+                  href={item.href}
                   className={cn(
                     "flex items-center gap-1 px-3 py-2 text-sm font-medium transition-colors",
                     isNavItemActive(item)
@@ -68,7 +68,7 @@ export function Header({ settings, courseMenuItems }: HeaderProps) {
                 >
                   {item.label}
                   <ChevronDown className="h-4 w-4" />
-                </button>
+                </Link>
                 {openDropdown === item.label && (
                   <div className="absolute left-0 top-full min-w-[220px] rounded-lg border border-outline/10 bg-white py-2 shadow-card">
                     {item.children.map((child) => (
@@ -121,9 +121,13 @@ export function Header({ settings, courseMenuItems }: HeaderProps) {
             <div key={item.label} className="border-b border-outline/5 py-2">
               {item.children ? (
                 <>
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-outline">
+                  <Link
+                    href={item.href}
+                    className="mb-2 block text-sm font-semibold text-primary"
+                    onClick={() => setMobileOpen(false)}
+                  >
                     {item.label}
-                  </p>
+                  </Link>
                   {item.children.map((child) => (
                     <Link
                       key={child.href}

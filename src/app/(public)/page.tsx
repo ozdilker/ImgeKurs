@@ -2,7 +2,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { AnimateIn } from "@/components/ui/AnimateIn";
 import { HeroSlider } from "@/components/home/HeroSlider";
-import { getCourses, getPageContent, getSiteSettings } from "@/lib/firebase/firestore";
+import { getActiveCourses, getPageContent, getSiteSettings } from "@/lib/firebase/firestore";
+import { resolveCourseImage } from "@/lib/course-utils";
 import { defaultHeroSlides } from "@/lib/pages";
 import type { Metadata } from "next";
 import Image from "next/image";
@@ -15,11 +16,11 @@ export default async function HomePage() {
   const [page, settings, courses] = await Promise.all([
     getPageContent("anasayfa"),
     getSiteSettings(),
-    getCourses(),
+    getActiveCourses(),
   ]);
 
   const slides = page?.heroSlides?.length ? page.heroSlides : defaultHeroSlides;
-  const featuredCourses = courses.filter((c) => c.status === "active").slice(0, 3);
+  const featuredCourses = courses.slice(0, 3);
 
   return (
     <>
@@ -29,7 +30,7 @@ export default async function HomePage() {
         <div className="container-main">
           <AnimateIn className="mb-12 text-center">
             <h2 className="heading-accent mb-4 text-3xl font-bold text-primary md:text-4xl">
-              Eğitim Programlarımız
+              Eğitimlerimiz
             </h2>
             <p className="text-slate-text">
               Her seviyeye uygun özel müfredat ve birebir takip
@@ -42,7 +43,7 @@ export default async function HomePage() {
                 <article className="group animate-card overflow-hidden rounded-2xl bg-white shadow-card">
                   <div className="relative h-48 overflow-hidden">
                     <Image
-                      src={course.imageUrl}
+                      src={resolveCourseImage(course.imageUrl)}
                       alt={course.title}
                       fill
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -69,6 +70,12 @@ export default async function HomePage() {
                 </article>
               </AnimateIn>
             ))}
+          </div>
+
+          <div className="mt-10 text-center">
+            <Link href="/egitimlerimiz">
+              <Button variant="outline">Tüm Eğitimlerimiz</Button>
+            </Link>
           </div>
         </div>
       </section>

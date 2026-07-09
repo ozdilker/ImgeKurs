@@ -18,13 +18,18 @@ export function slugifyCourseTitle(title: string): string {
 }
 
 export function coursesToMenuItems(courses: Course[]) {
-  return courses
+  const programLinks = courses
     .filter((course) => course.status === "active")
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
     .map((course) => ({
       label: course.title,
       href: `/egitim-detay/${course.slug}`,
     }));
+
+  return [
+    { label: "Tüm Programlar", href: "/egitimlerimiz" },
+    ...programLinks,
+  ];
 }
 
 export type NavItem = {

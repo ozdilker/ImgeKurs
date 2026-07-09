@@ -23,6 +23,7 @@ import type {
   SuccessStory,
   VideoLesson,
 } from "../types";
+import { isValidCourse, normalizeCourseDoc } from "../course-utils";
 import { defaultCourses, defaultSiteSettings } from "../seed-data";
 import { normalizeHakkimizdaPage } from "../hakkimizda-defaults";
 import { getDefaultPages } from "../pages";
@@ -105,34 +106,69 @@ async function fetchOrdered<T>(
   }
 }
 
-export async function getCourses(): Promise<Course[]> {
+async function fetchCourseDocs(): Promise<Course[]> {
   const firestore = db();
-  if (!firestore || !isFirebaseConfigured()) return defaultCourses;
+  if (!firestore || !isFirebaseConfigured()) return [];
+
   try {
     const q = query(collection(firestore, "courses"), orderBy("order", "asc"));
     const snap = await getDocs(q);
-    if (snap.empty) return defaultCourses;
-    return snap.docs.map((d) => {
-      const data = d.data();
-      return {
-        id: d.id,
-        ...data,
-        slug: String(data.slug ?? ""),
-        title: String(data.title ?? ""),
-        category: String(data.category ?? ""),
-        description: String(data.description ?? ""),
-        imageUrl: String(data.imageUrl ?? ""),
-        schedule: data.schedule ? String(data.schedule) : undefined,
-        classSize: data.classSize ? String(data.classSize) : undefined,
-        tag: data.tag ? String(data.tag) : undefined,
-        isVip: data.isVip === true,
-        order: typeof data.order === "number" ? data.order : 1,
-        status: data.status === "draft" ? "draft" : "active",
-      } as Course;
-    });
+    return snap.docs.map((d) => normalizeCourseDoc(d.id, d.data()));
+  } catch {
+    const snap = await getDocs(collection(firestore, "courses"));
+    return snap.docs
+      .map((d) => normalizeCourseDoc(d.id, d.data()))
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  }
+}
+
+function mergeWithDefaultCourses(firestoreCourses: Course[]): Course[] {
+  const validFirestore = firestoreCourses.filter(isValidCourse);
+  if (validFirestore.length === 0) return defaultCourses;
+
+  const bySlug = new Map(validFirestore.map((course) => [course.slug, course]));
+  const merged = defaultCourses.map(
+    (course) => bySlug.get(course.slug) ?? course
+  );
+
+  for (const course of validFirestore) {
+    if (!defaultCourses.some((item) => item.slug === course.slug)) {
+      merged.push(course);
+    }
+  }
+
+  return merged.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+}
+
+export async function getCourses(): Promise<Course[]> {
+  const firestore = db();
+  if (!firestore || !isFirebaseConfigured()) return defaultCourses;
+
+  try {
+    const firestoreCourses = await fetchCourseDocs();
+    if (firestoreCourses.length === 0) return defaultCourses;
+    return mergeWithDefaultCourses(firestoreCourses);
   } catch {
     return defaultCourses;
   }
+}
+
+export async function getActiveCourses(): Promise<Course[]> {
+  const courses = await getCourses();
+  return courses.filter((course) => course.status === "active");
+}
+
+export async function seedDefaultCoursesIfEmpty(): Promise<boolean> {
+  const firestore = requireDb();
+  const snap = await getDocs(collection(firestore, "courses"));
+  if (!snap.empty) return false;
+
+  const batch = writeBatch(firestore);
+  for (const course of defaultCourses) {
+    batch.set(doc(firestore, "courses", course.id), course);
+  }
+  await batch.commit();
+  return true;
 }
 
 export async function getCourseBySlug(slug: string): Promise<Course | null> {

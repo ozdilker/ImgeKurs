@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AdminHeader } from "@/components/admin/AdminSidebar";
 import { Button } from "@/components/ui/Button";
-import { deleteCourse, getCourses } from "@/lib/firebase/firestore";
+import { deleteCourse, getCourses, seedDefaultCoursesIfEmpty } from "@/lib/firebase/firestore";
 import { revalidateProgramPages } from "@/app/actions/revalidate";
 import type { Course } from "@/lib/types";
 import { Pencil, Plus, Trash2 } from "lucide-react";
@@ -12,13 +12,22 @@ import { Pencil, Plus, Trash2 } from "lucide-react";
 export default function CoursesAdminPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    getCourses()
-      .then((data) =>
-        setCourses(data.sort((a, b) => (a.order ?? 0) - (b.order ?? 0)))
-      )
-      .finally(() => setLoading(false));
+    async function loadCourses() {
+      try {
+        await seedDefaultCoursesIfEmpty();
+        const data = await getCourses();
+        setCourses(data.sort((a, b) => (a.order ?? 0) - (b.order ?? 0)));
+      } catch {
+        setError("Programlar yüklenemedi. Firebase bağlantısını kontrol edin.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadCourses();
   }, []);
 
   async function handleDelete(id: string) {
@@ -50,6 +59,10 @@ export default function CoursesAdminPage() {
       {loading ? (
         <div className="rounded-2xl bg-white p-12 text-center shadow-card">
           <p className="text-slate-text">Programlar yükleniyor...</p>
+        </div>
+      ) : error ? (
+        <div className="rounded-2xl bg-white p-12 text-center shadow-card">
+          <p className="text-lg font-semibold text-primary">{error}</p>
         </div>
       ) : courses.length === 0 ? (
         <div className="rounded-2xl bg-white p-12 text-center shadow-card">

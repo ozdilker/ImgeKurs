@@ -173,9 +173,8 @@ export const mainNav: {
 }[] = [
   { label: "Anasayfa", href: "/" },
   { label: "Hakkımızda", href: "/sayfa/hakkimizda" },
-  { label: "Eğitimlerimiz", href: "/egitim-programi", children: educationMenu },
+  { label: "Eğitimlerimiz", href: "/egitimlerimiz", children: educationMenu },
   { label: "Başarılarımız", href: "/basarilarimiz" },
   { label: "Galeri", href: "/galeri" },
-  { label: "Eğitim Programı", href: "/egitim-programi" },
   { label: "İletişim", href: "/iletisim" },
 ];

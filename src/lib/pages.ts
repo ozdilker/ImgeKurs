@@ -4,7 +4,7 @@ import { defaultHakkimizdaSections } from "./hakkimizda-defaults";
 export const pageRegistry = [
   { slug: "anasayfa", label: "Anasayfa", path: "/" },
   { slug: "hakkimizda", label: "Hakkımızda", path: "/sayfa/hakkimizda" },
-  { slug: "egitim-programi", label: "Eğitim Programı", path: "/egitim-programi" },
+  { slug: "egitim-programi", label: "Eğitimlerimiz", path: "/egitimlerimiz" },
   { slug: "basarilarimiz", label: "Başarılarımız", path: "/basarilarimiz" },
   { slug: "galeri", label: "Galeri", path: "/galeri" },
   { slug: "iletisim", label: "İletişim", path: "/iletisim" },
@@ -47,7 +47,7 @@ export const defaultHeroSlides = [
     imageUrl: "/slider/slider4.png",
     title: "Kişiye Özel Butik Eğitim",
     subtitle: "Masabaşı butik eğitim ve sıcak aile ortamı",
-    link: "/egitim-programi",
+    link: "/egitimlerimiz",
     order: 4,
     enabled: true,
   },
@@ -57,7 +57,7 @@ export const defaultHeroSlides = [
     title: "Maksimum 8-10 Kişilik Sınıflarda Eğitim İmkanı",
     subtitle:
       "imge Kurs Merkezi'nde maksimum 8-10 kişilik sınıflarda butik eğitim imkanı sizleri bekliyor",
-    link: "/egitim-programi",
+    link: "/egitimlerimiz",
     order: 5,
     enabled: true,
   },
@@ -90,7 +90,7 @@ export function createDefaultPage(slug: PageSlug): PageContent {
     case "egitim-programi":
       return {
         ...base,
-        heroTitle: "Eğitim Programlarımız",
+        heroTitle: "Eğitimlerimiz",
         heroSubtitle:
           "Her seviyeye uygun özel müfredat ve birebir takip ile öğrenci başarısını en üst düzeye çıkarıyoruz.",
       };

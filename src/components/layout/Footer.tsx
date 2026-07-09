@@ -33,8 +33,8 @@ export function Footer({ settings }: FooterProps) {
                 </Link>
               </li>
               <li>
-                <Link href="/egitim-programi" className="hover:text-gold">
-                  Programlarımız
+                <Link href="/egitimlerimiz" className="hover:text-gold">
+                  Eğitimlerimiz
                 </Link>
               </li>
               <li>
