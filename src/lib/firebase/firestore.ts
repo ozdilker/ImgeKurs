@@ -217,7 +217,13 @@ export async function getGalleryItems(): Promise<GalleryItem[]> {
 }
 
 export async function saveGalleryItem(item: GalleryItem): Promise<void> {
-  await setDoc(doc(requireDb(), "gallery", item.id), item);
+  await setDoc(doc(requireDb(), "gallery", item.id), {
+    ...item,
+    title: item.title.trim(),
+    imageUrl: item.imageUrl.trim(),
+    category: item.category.trim() || "Genel",
+    order: Number(item.order) || 1,
+  });
 }
 
 export async function deleteGalleryItem(id: string): Promise<void> {

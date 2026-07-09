@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import Image from "next/image";
+import { revalidateGalleryPage } from "@/app/actions/revalidate";
 import { AdminHeader } from "@/components/admin/AdminSidebar";
 import { ImageUploadField } from "@/components/admin/ImageUploadField";
 import { Button } from "@/components/ui/Button";
@@ -45,6 +46,7 @@ export default function GalleryAdminPage() {
   const [bulkCategory, setBulkCategory] = useState("Genel");
   const [bulkUploading, setBulkUploading] = useState(false);
   const bulkInputRef = useRef<HTMLInputElement>(null);
+  const bulkInputId = useId();
 
   const loadItems = useCallback(async () => {
     setLoading(true);
@@ -100,6 +102,7 @@ export default function GalleryAdminPage() {
 
     try {
       await saveGalleryItem(item);
+      await revalidateGalleryPage();
       setItems((prev) => {
         if (editingId) {
           return prev
@@ -116,27 +119,31 @@ export default function GalleryAdminPage() {
 
   async function handleBulkUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
+    e.target.value = "";
     if (files.length === 0) return;
 
     setBulkUploading(true);
     const newItems: GalleryItem[] = [];
     const errors: string[] = [];
     let order = items.length;
+    const batchId = Date.now();
 
     try {
-      for (const file of files) {
+      for (const [index, file] of files.entries()) {
         try {
-          const imageUrl = await uploadImage(file, "gallery");
+          const imageUrl = await uploadImage(file, "uploads/gallery");
           order += 1;
           newItems.push({
-            id: `gallery-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+            id: `gallery-${batchId}-${index}-${Math.random().toString(36).slice(2, 7)}`,
             title: titleFromFileName(file.name) || `Görsel ${order}`,
             imageUrl,
             category: bulkCategory,
             order,
           });
-        } catch {
-          errors.push(`"${file.name}" yüklenemedi.`);
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : "Bilinmeyen hata";
+          errors.push(`"${file.name}": ${message}`);
         }
       }
 
@@ -145,16 +152,21 @@ export default function GalleryAdminPage() {
       }
 
       if (newItems.length > 0) {
+        await revalidateGalleryPage();
         setItems((prev) =>
           [...prev, ...newItems].sort((a, b) => a.order - b.order)
         );
         alert(`${newItems.length} görsel galeriye eklendi.`);
+      } else if (errors.length === 0) {
+        alert("Yüklenecek geçerli görsel bulunamadı.");
       }
+
       if (errors.length > 0) {
         alert(errors.join("\n"));
       }
-    } catch {
-      alert("Toplu yükleme başarısız.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Toplu yükleme başarısız.";
+      alert(message);
     } finally {
       setBulkUploading(false);
       if (bulkInputRef.current) bulkInputRef.current.value = "";
@@ -165,6 +177,7 @@ export default function GalleryAdminPage() {
     if (!confirm(`"${title}" görselini silmek istediğinize emin misiniz?`)) return;
     try {
       await deleteGalleryItem(id);
+      await revalidateGalleryPage();
       setItems((prev) => prev.filter((i) => i.id !== id));
       if (editingId === id) closeForm();
     } catch {
@@ -197,22 +210,24 @@ export default function GalleryAdminPage() {
             ))}
           </select>
           <input
+            id={bulkInputId}
             ref={bulkInputRef}
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png,image/webp,image/gif,image/*"
             multiple
-            className="hidden"
+            className="sr-only"
+            disabled={bulkUploading}
             onChange={handleBulkUpload}
           />
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={bulkUploading}
-            onClick={() => bulkInputRef.current?.click()}
+          <label
+            htmlFor={bulkInputId}
+            className={`inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-gold px-4 py-2 text-sm font-semibold text-primary transition-all duration-200 hover:bg-gold/90 ${
+              bulkUploading ? "pointer-events-none opacity-50" : ""
+            }`}
           >
             <Upload className="h-4 w-4" />
             {bulkUploading ? "Yükleniyor..." : "Çoklu Görsel Seç"}
-          </Button>
+          </label>
         </div>
       </div>
 
@@ -268,6 +283,7 @@ export default function GalleryAdminPage() {
             onChange={(url) => setForm({ ...form, imageUrl: url })}
             hint="Dosya yükleyin veya görsel URL'si yapıştırın."
             previewHeight={160}
+            folder="uploads/gallery"
           />
 
           <div className="flex gap-2">

@@ -8,6 +8,8 @@ export const metadata: Metadata = {
   title: "Galeri",
 };
 
+export const revalidate = 60;
+
 export default async function GalleryPage() {
   const [page, items] = await Promise.all([
     getPageContent("galeri"),

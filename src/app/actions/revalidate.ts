@@ -20,3 +20,7 @@ export async function revalidateProgramPages() {
 export async function revalidateHakkimizdaPage() {
   revalidatePath("/sayfa/hakkimizda");
 }
+
+export async function revalidateGalleryPage() {
+  revalidatePath("/galeri");
+}

@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Upload } from "lucide-react";
-import { uploadImagePlaceholder } from "@/lib/firebase/firestore";
+import { uploadImage } from "@/lib/firebase/storage";
 
 type ImageUploadFieldProps = {
   label: string;
@@ -10,6 +10,7 @@ type ImageUploadFieldProps = {
   onChange: (url: string) => void;
   hint?: string;
   previewHeight?: number;
+  folder?: string;
 };
 
 export function ImageUploadField({
@@ -18,6 +19,7 @@ export function ImageUploadField({
   onChange,
   hint,
   previewHeight = 80,
+  folder = "uploads",
 }: ImageUploadFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -27,7 +29,7 @@ export function ImageUploadField({
     if (!file) return;
     setUploading(true);
     try {
-      const url = await uploadImagePlaceholder(file);
+      const url = await uploadImage(file, folder);
       onChange(url);
     } catch (err) {
       alert(err instanceof Error ? err.message : "Görsel yüklenemedi.");
