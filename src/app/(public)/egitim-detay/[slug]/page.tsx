@@ -5,6 +5,7 @@ import { Clock, Users } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { PreRegistrationForm } from "@/components/forms/PreRegistrationForm";
 import { getCourseBySlug, getCourses } from "@/lib/firebase/firestore";
+import { resolveCourseImage } from "@/lib/course-utils";
 import type { Metadata } from "next";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -31,7 +32,7 @@ export default async function CourseDetailPage({ params }: Props) {
     <>
       <section className="relative flex h-64 items-end bg-primary md:h-80">
         <Image
-          src={course.imageUrl}
+          src={resolveCourseImage(course.imageUrl)}
           alt={course.title}
           fill
           className="object-cover opacity-40"

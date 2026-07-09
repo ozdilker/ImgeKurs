@@ -69,6 +69,12 @@ export default function CourseEditPage({
       return;
     }
 
+    if (!form.imageUrl.trim()) {
+      alert("Program görseli zorunludur. Lütfen bir görsel yükleyin veya URL girin.");
+      setSaving(false);
+      return;
+    }
+
     if (!slug) {
       alert("Geçerli bir slug oluşturulamadı. Lütfen slug alanını doldurun.");
       setSaving(false);

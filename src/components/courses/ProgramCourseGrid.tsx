@@ -6,6 +6,7 @@ import { Clock, Users } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { AnimatedSection } from "@/components/ui/AnimatedSection";
 import { cn } from "@/lib/utils";
+import { resolveCourseImage } from "@/lib/course-utils";
 import type { Course } from "@/lib/types";
 
 export function ProgramCourseGrid({ courses }: { courses: Course[] }) {
@@ -34,7 +35,7 @@ export function ProgramCourseGrid({ courses }: { courses: Course[] }) {
             )}
             <div className="relative h-48 overflow-hidden">
               <Image
-                src={course.imageUrl}
+                src={resolveCourseImage(course.imageUrl)}
                 alt={course.title}
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
