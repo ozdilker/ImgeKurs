@@ -117,7 +117,17 @@ export async function getCourses(): Promise<Course[]> {
       return {
         id: d.id,
         ...data,
+        slug: String(data.slug ?? ""),
+        title: String(data.title ?? ""),
+        category: String(data.category ?? ""),
+        description: String(data.description ?? ""),
+        imageUrl: String(data.imageUrl ?? ""),
+        schedule: data.schedule ? String(data.schedule) : undefined,
+        classSize: data.classSize ? String(data.classSize) : undefined,
+        tag: data.tag ? String(data.tag) : undefined,
         isVip: data.isVip === true,
+        order: typeof data.order === "number" ? data.order : 1,
+        status: data.status === "draft" ? "draft" : "active",
       } as Course;
     });
   } catch {
